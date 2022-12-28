@@ -1,7 +1,6 @@
 ---
 aliases:
-- /Large prior-free models/ML/Transformer-VAE/code/2020/08/25/Transformer-VAE for
-  Program Synthesis
+- /Large prior-free models/ML/Transformer-VAE/code/2020/08/25/Transformer-VAE-for-Program-Synthesis
 categories:
 - ML
 - Large prior-free models
@@ -10,7 +9,7 @@ categories:
 date: '2020-08-25'
 description: Find the right program in a latent space.
 layout: post
-title: Transformer-VAE for Program Synthesis
+title: Transformer-VAE-for-Program-Synthesis
 toc: true
 
 ---

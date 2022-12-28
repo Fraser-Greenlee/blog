@@ -1,6 +1,6 @@
 ---
 aliases:
-- /ML/2021/03/11/Interpolating the internet
+- /ML/2021/03/11/Interpolating-the-internet
 categories:
 - ML
 date: '2021-03-11'

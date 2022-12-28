@@ -1,6 +1,6 @@
 ---
 aliases:
-- /games/simulation/2020/07/08/An Avatar game with realistic physics
+- /games/simulation/2020/07/08/An-Avatar-game-with-realistic-physics
 categories:
 - games
 - simulation
@@ -8,7 +8,7 @@ date: '2020-07-08'
 description: Finding the physics of water bending.
 image: https://raw.githubusercontent.com/Fraser-Greenlee/fastpages/master/images/katara_waterbend_arrows.gif
 layout: post
-title: An Avatar game with realistic physics
+title: An-Avatar-game-with-realistic-physics
 
 ---
 

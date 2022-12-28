@@ -1,6 +1,6 @@
 ---
 aliases:
-- /Large prior-free models/ML/Transformer-VAE/2021/02/23/An Improved Transformer-VAE
+- /Large prior-free models/ML/Transformer-VAE/2021/02/23/An-Improved-Transformer-VAE
 categories:
 - ML
 - Large prior-free models
@@ -8,7 +8,7 @@ categories:
 date: '2021-02-23'
 description: An easy to use repo with SOTA performance.
 layout: post
-title: An Improved Transformer-VAE
+title: An-Improved-Transformer-VAE
 
 ---
 

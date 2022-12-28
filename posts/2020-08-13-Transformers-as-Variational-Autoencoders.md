@@ -1,6 +1,6 @@
 ---
 aliases:
-- /Large prior-free models/ML/Transformer-VAE/2020/08/13/Transformers as Variational
+- /Large prior-free models/ML/Transformer-VAE/2020/08/13/Transformers-as-Variational-Autoencoders
   Autoencoders
 categories:
 - ML
@@ -9,7 +9,7 @@ categories:
 date: '2020-08-13'
 description: Avoid posterior collapse even with a huge model.
 layout: post
-title: Transformers as Variational Autoencoders
+title: Transformers-as-Variational-Autoencoders
 
 ---
 
