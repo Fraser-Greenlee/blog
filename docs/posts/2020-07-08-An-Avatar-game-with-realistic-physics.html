@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.280">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2020-07-08">
+<meta name="description" content="Finding the physics of water bending.">
+
+<title>Fras Green - An-Avatar-game-with-realistic-physics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-contrib/videojs/video.min.js"></script>
+<link href="../site_libs/quarto-contrib/videojs/video-js.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Fras Green</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/FraserGreenlee"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/FraserGreenlee"><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">An-Avatar-game-with-realistic-physics</h1>
+                  <div>
+        <div class="description">
+          Finding the physics of water bending.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">games</div>
+                <div class="quarto-category">simulation</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">July 8, 2020</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p>After watching <a href="https://www.imdb.com/title/tt0417299/">Avatar: The Last Airbender</a> I wanted to experience bending the elements just like in the show. Of course actually doing this is impossible but could a game give that feeling?</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<figure class="figure">
+<img src="katara_waterbend.gif" title="See the smooth movement of the water." class="img-fluid figure-img">
+</figure>
+<p></p><figcaption class="figure-caption">GIF of katara water bending.</figcaption><p></p>
+</figure>
+</div>
+<p>It turns out that you can achieve a compelling water bendning effect using Unity! Here’s the end result.</p>
+<p></p><div id="tweet-46642"></div><script>tweet={"url":"https:\/\/twitter.com\/FraserGreenlee\/status\/1295012224793227264","author_name":"Fraser","author_url":"https:\/\/twitter.com\/FraserGreenlee","html":"\u003Cblockquote class=\"twitter-tweet\" align=\"center\"\u003E\u003Cp lang=\"en\" dir=\"ltr\"\u003EWater bendings looking smooth now.\u003Cbr\u003E\u003Cbr\u003EAnyone got tips on making art assets? Hoping to get an ATLA feel. \u003Ca href=\"https:\/\/t.co\/CbdPFY8SSv\"\u003Epic.twitter.com\/CbdPFY8SSv\u003C\/a\u003E\u003C\/p\u003E&mdash; Fraser (@FraserGreenlee) \u003Ca href=\"https:\/\/twitter.com\/FraserGreenlee\/status\/1295012224793227264?ref_src=twsrc%5Etfw\"\u003EAugust 16, 2020\u003C\/a\u003E\u003C\/blockquote\u003E\n\u003Cscript async src=\"https:\/\/platform.twitter.com\/widgets.js\" charset=\"utf-8\"\u003E\u003C\/script\u003E\n","width":550,"height":null,"type":"rich","cache_age":"3153600000","provider_name":"Twitter","provider_url":"https:\/\/twitter.com","version":"1.0"};document.getElementById("tweet-46642").innerHTML = tweet["html"];</script><p></p>
+<section id="so-how-did-i-do-this" class="level2">
+<h2 class="anchored" data-anchor-id="so-how-did-i-do-this">So how did I do this?</h2>
+<p>Before jumping into 3D lets consider the problem in just 2 dimensions. <a href="https://coronalabs.com">Corona Labs</a> lets you make 2D cross-platform games and it comes with a realistic particle simulator.</p>
+<p>It comes with this demo below, <strong>click below</strong> to try it!</p>
+<!-- {% raw %} -->
+<figure class="iframe figure">
+<iframe src="../games/LiquidFun-ColorFaucet.html">
+</iframe>
+</figure>
+<!-- {% endraw %} -->
+<p>This gives some interaction with particles but doesn’t create the smooth flows of water you see in the show.</p>
+<p>It works by making all particles within the orange box match the box’s velocity. This is done by repeatedly running <a href="https://docs.coronalabs.com/api/type/ParticleSystem/queryRegion.html"><code>queryRegion</code></a> which sets particle velocity in a given region. Notably this allows incrimenting particle velocity as well.</p>
+<p>Lets picture the first GIF but with imagined forces on the water drawn as arrows.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<figure class="figure">
+<img src="katara_waterbend_arrows.gif" title="The arrows denote forces on the water." class="img-fluid figure-img">
+</figure>
+<p></p><figcaption class="figure-caption">Katara water bending.</figcaption><p></p>
+</figure>
+</div>
+<p>Now to get a bending effect we can recreate the above GIF it with multiple <code>queryRegion</code> boxes.</p>
+<p>Using the grid above, when a user taps the screen a ring of cells are updated with each pointing to the cursor. To ensure the cursor is always in the middle of a grid cell the whole grid is shifted as the cursor moves between cells.</p>
+<p>For cell values I make the magnitude’s greater for further out cells as I found this better holds the particles together. To get long streams of water I gradually decrease old cell values.</p>
+<p>Below I show the cell values with white arrows (longer for greator velocity incriments).</p>
+<p><strong>Try water bending below.</strong></p>
+<!-- {% raw %} -->
+<figure class="iframe figure">
+<iframe src="../games/LiquidFun-ColorFaucet-Bending.html">
+</iframe>
+</figure>
+<!-- {% endraw %} -->
+<p>Then by making particles with different physical properties you get different materials. Ice is a solid group of particles, green acid mixes colour with the blue water, slime is a sticky group of particles while mud is viscous.</p>
+<div class="quarto-video"><video id="video_shortcode_videojs_video1" class="video-js vjs-default-skin vjs-fluid" controls="" preload="auto" data-setup="{}" title=""><source src="water-materials.mp4"></video></div>
+<div class="quarto-video"><video id="video_shortcode_videojs_video2" class="video-js vjs-default-skin vjs-fluid" controls="" preload="auto" data-setup="{}" title=""><source src="firebend-combat.mp4"></video></div>
+<div class="quarto-video"><video id="video_shortcode_videojs_video3" class="video-js vjs-default-skin vjs-fluid" controls="" preload="auto" data-setup="{}" title=""><source src="water-fight.mp4"></video></div>
+<p>Checkout the 2D source <a href="https://github.com/Fraser-Greenlee/benders">here</a>.</p>
+</section>
+<section id="d-bending" class="level2">
+<h2 class="anchored" data-anchor-id="d-bending">3D bending</h2>
+<p>Now that our 2D bending is pretty cool we’ve just got to extend it into 3D!</p>
+<p>First we can use <a href="http://obi.virtualmethodstudio.com">ObiFluids</a> to simulate particles in 3D. Sadly it doesn’t come with a native <code>queryRegion</code> method but we can just make one by partitioning space into a 3D grid.</p>
+<p>When running the code iterates over every particle to find its region &amp; adjusts the velocity in the same way as before.</p>
+<p>This could clearly make a compelling VR game, unfortunatley I am too invested in an ML project right now to do more work. If you would like any other implementation details feel free to reach out to me on <a href="http://twitter.com/FraserGreenlee">Twitter</a>.</p>
+<p></p><div id="tweet-99967"></div><script>tweet={"url":"https:\/\/twitter.com\/FraserGreenlee\/status\/1295012224793227264","author_name":"Fraser","author_url":"https:\/\/twitter.com\/FraserGreenlee","html":"\u003Cblockquote class=\"twitter-tweet\" align=\"center\"\u003E\u003Cp lang=\"en\" dir=\"ltr\"\u003EWater bendings looking smooth now.\u003Cbr\u003E\u003Cbr\u003EAnyone got tips on making art assets? Hoping to get an ATLA feel. \u003Ca href=\"https:\/\/t.co\/CbdPFY8SSv\"\u003Epic.twitter.com\/CbdPFY8SSv\u003C\/a\u003E\u003C\/p\u003E&mdash; Fraser (@FraserGreenlee) \u003Ca href=\"https:\/\/twitter.com\/FraserGreenlee\/status\/1295012224793227264?ref_src=twsrc%5Etfw\"\u003EAugust 16, 2020\u003C\/a\u003E\u003C\/blockquote\u003E\n\u003Cscript async src=\"https:\/\/platform.twitter.com\/widgets.js\" charset=\"utf-8\"\u003E\u003C\/script\u003E\n","width":550,"height":null,"type":"rich","cache_age":"3153600000","provider_name":"Twitter","provider_url":"https:\/\/twitter.com","version":"1.0"};document.getElementById("tweet-99967").innerHTML = tweet["html"];</script><p></p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<script>videojs(video_shortcode_videojs_video1);</script>
+<script>videojs(video_shortcode_videojs_video2);</script>
+<script>videojs(video_shortcode_videojs_video3);</script>
+
+
+
+<script src="https://platform.twitter.com/widgets.js"></script>
+</body></html>
