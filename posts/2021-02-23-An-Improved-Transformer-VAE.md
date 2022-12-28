@@ -19,9 +19,6 @@ You can try out training in [Colab](https://colab.research.google.com/drive/1S8s
 
 In this post I'll describe the changes I made and what this has taught me about independent ML research.
 
-1. TOC
-{:toc}
-
 ## Motivation
 
 As outlined in a [previous post](https://fraser-greenlee.github.io/2020/08/13/Transformers-as-Variational-Autoencoders.html) I think large transformer VAEs have a lot of potential.

@@ -37,7 +37,7 @@ The idea is to learn a semanticly organised map of code and state just by lookin
 
 To do This T5-VAEs are trained to represent code and state. Their resulting encodings are concatenated and given to what I'm calling an executor which is a T5-encoder which maps the (state + code) encoding into the resulting state. This is then passed to the state autoencoder again to be decoded into the resulting state.
 
-![![.](prog_synth/latent_executor.png "The Latent Executor")
+![![.](latent_executor.png "The Latent Executor")
 
 ## Initial Tests
 
@@ -51,7 +51,7 @@ By only using 2 latent dimensions the space of "programs" was easy to visualise.
 
 Here are the resulting state and code latent spaces.
 
-![![.](prog_synth/joint_latent_pos.png "Here darker values represent higher values from -99 to 99.")
+![![.](joint_latent_pos.png "Here darker values represent higher values from -99 to 99.")
 
 Even though the model just sees abstract tokens it has still grouped numbers with similar values.
 The code space looks better organised than the state space.
@@ -61,14 +61,14 @@ T5-VAE is an MMD-VAE meaning it computes its regularisation loss using the maxim
 A varient with a 10-dimensional latent space was also trained and by using t-SNE with multiple perplexities we can see a similar orginisation of state and code.
 Lower perplexities show local structure while high perplexities show global structure.
 
-![![.](prog_synth/code_tsne.png "Code, note the similar split between small and large values.")
+![![.](code_tsne.png "Code, note the similar split between small and large values.")
 
-![![.](prog_synth/state_tsne.png "State, note the similar hole shape only visible at 100 perplexity.")
+![![.](state_tsne.png "State, note the similar hole shape only visible at 100 perplexity.")
 
 Since a continuous space of well organised code was found, it was time to try measuring the loss for different "programs" and check its accuracy.
 The loss used was state-decoder cross entropy which gave the most reliable signal.
 
-![![.](prog_synth/dec_ce_71m53eq18.png "Loss for the sum 71+?=18, the correct answer is -53.")
+![![.](dec_ce_71m53eq18.png "Loss for the sum 71+?=18, the correct answer is -53.")
 
 Looking at the loss, the lowest values (coloured white) are at or near -53.
 You can also see that the space is not perfectly organised, -50 and -51 are at oposite ends of the y-axis.

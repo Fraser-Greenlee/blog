@@ -1,5 +1,5 @@
 ---
-title: "Fras Green"
+title: ""
 listing:
   contents: posts
   sort: "date desc"

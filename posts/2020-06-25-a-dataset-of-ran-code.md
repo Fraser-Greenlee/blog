@@ -19,9 +19,6 @@ While these offer large amounts of data they don't actually show what code funda
 
 With that in mind I've created a dataset of over 1 million ran python programming solutions with state changes shown after each line of code. [Get it here](https://www.kaggle.com/frasergreenlee/ran-hackerrank-solutions)
 
-1. TOC
-{:toc}
-
 ## Motivation
 
 Most AI for code models only learn from reading code. This lets AI models recognise patterns in the code & generate sensible-looking code.
