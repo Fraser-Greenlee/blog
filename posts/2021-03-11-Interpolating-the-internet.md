@@ -46,7 +46,7 @@ A similar phenomenon is playing out with text.
 GPT-3 is trained to complete text prompts.
 Here ideas and concepts can be merged to reason & write stories like in this hilarious example:
 
-{% twitter https://twitter.com/jonathanfly/status/1284082774325039105 %}
+{{< tweet jonathanfly 1284082774325039105 >}}
 
 Already people are [generating articles](https://liamp.substack.com/p/my-gpt-3-blog-got-26-thousand-visitors) using GPT-3 by giving manual prompts.
 

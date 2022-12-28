@@ -20,7 +20,7 @@ Of course actually doing this is impossible but could a game give that feeling?
 It turns out that you can achieve a compelling water bendning effect using Unity!
 Here's the end result.
 
-{% twitter https://twitter.com/i/status/1295012224793227264 %}
+{{< tweet FraserGreenlee 1295012224793227264 >}}
 
 ## So how did I do this?
 
@@ -66,11 +66,11 @@ Below I show the cell values with white arrows (longer for greator velocity incr
 Then by making particles with different physical properties you get different materials.
 Ice is a solid group of particles, green acid mixes colour with the blue water, slime is a sticky group of particles while mud is viscous.
 
-{% include video.html url="/videos/water-materials.mp4" %}
+{{< video water-materials.mp4 >}}
 
-{% include video.html url="/videos/firebend-combat.mp4" %}
+{{< video firebend-combat.mp4 >}}
 
-{% include video.html url="/videos/water-fight.mp4" %}
+{{< video water-fight.mp4 >}}
 
 Checkout the 2D source [here](https://github.com/Fraser-Greenlee/benders).
 
@@ -86,4 +86,4 @@ When running the code iterates over every particle to find its region & adjusts 
 This could clearly make a compelling VR game, unfortunatley I am too invested in an ML project right now to do more work.
 If you would like any other implementation details feel free to reach out to me on [Twitter](http://twitter.com/FraserGreenlee).
 
-{% twitter https://twitter.com/i/status/1295012224793227264 %}
+{{< tweet FraserGreenlee 1295012224793227264 >}}
