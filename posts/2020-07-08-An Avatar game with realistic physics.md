@@ -15,7 +15,7 @@ title: An Avatar game with realistic physics
 After watching [Avatar: The Last Airbender](https://www.imdb.com/title/tt0417299/) I wanted to experience bending the elements just like in the show.
 Of course actually doing this is impossible but could a game give that feeling?
 
-![GIF of katara water bending.]({{ site.baseurl }}/images/katara_waterbend.gif "See the smooth movement of the water.")
+![GIF of katara water bending.](katara_waterbend.gif "See the smooth movement of the water.")
 
 It turns out that you can achieve a compelling water bendning effect using Unity!
 Here's the end result.
@@ -43,7 +43,7 @@ Notably this allows incrimenting particle velocity as well.
 
 Lets picture the first GIF but with imagined forces on the water drawn as arrows.
 
-![Katara water bending.]({{ site.baseurl }}/images/katara_waterbend_arrows.gif "The arrows denote forces on the water.")
+![Katara water bending.](katara_waterbend_arrows.gif "The arrows denote forces on the water.")
 
 Now to get a bending effect we can recreate the above GIF it with multiple `queryRegion` boxes.
 

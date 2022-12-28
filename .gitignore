@@ -1,3 +1,4 @@
 .quarto
 .pytest_cache
 _site
+/.quarto/

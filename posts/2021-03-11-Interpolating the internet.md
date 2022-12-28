@@ -24,16 +24,16 @@ These models work by storing all their training data in a "latent space"[^1].
 Think of this as a map where content is arranged by its properties (e.g. going left words get angrier, pictures become more cat like as you move up, etc).
 To create new content we can simply adjust our positions to get new combinations of properties.
 
-![.]({{ site.baseurl }}/images/face_interpolation.jpg "Moving between 2 real faces in latent space.")
+![.](face_interpolation.jpg "Moving between 2 real faces in latent space.")
 
 Unlike Google Search which stores links and searches for results, a deep learning model combines aspects of existing content to make new results.
 A great example of this is DALL·E which works like Google image search on steroids, interpolating between relevent results rather than indexing them.
 
 Both are results for the prompt "a road sign with an image of a blue strawberry":
 
-![![.]({{ site.baseurl }}/images/Google a road sign with an image of a blue strawberry.png)]({{ site.baseurl }}/images/Google a road sign with an image of a blue strawberry.png "Google")
+![![.](Google a road sign with an image of a blue strawberry.png "Google")
 
-![![.]({{ site.baseurl }}/images/DALL-E a road sign with an image of a blue strawberry.png)]({{ site.baseurl }}/images/DALL-E a road sign with an image of a blue strawberry.png "DALL·E")
+![![.](DALL-E a road sign with an image of a blue strawberry.png "DALL·E")
 
 Notice that Google's results are not relevent.
 It is perfectly plausible for their to be "a road sign with an image of a blue strawberry" but there aren't many on the internet.

@@ -96,7 +96,7 @@ Once I had my runnable code snippets I used [Snoop](https://github.com/alexmojak
 
 Snoop dynamically adds logs to your code showing what has executed & which state values have changed. To see how this works check out this [talk](https://www.youtube.com/watch?v=Wm47491S-Fo).
 
-![Some Snoop output.]({{ site.baseurl }}/images/snoops-output.png "Some Snoop output.")
+![Some Snoop output.](snoops-output.png "Some Snoop output.")
 
 Next step was to run all the code snippets. The script used to run the code and progress logs can be found [here](https://app.wandb.ai/fraser/run-code-snippets/runs/3q9pzype/files/code/data/run_code/hacker-rank/get_problem_snoops.py). Thankfully running all these code snippets didn't cause many issues, I just had to watch out for some the occasional massive code snippet.
 
@@ -110,7 +110,7 @@ With the dataset completed I trained [gpt2](http://jalammar.github.io/illustrate
 
 [Here](https://app.wandb.ai/fraser/lm_snoop) you can see some initial results on training gpt2 & [BERT](http://jalammar.github.io/illustrated-bert/) on the data.
 
-![Eval loss while training gpt2-medium from-scratch/pre-trained on the Snoop text.]({{ site.baseurl }}/images/snoops-gpt2-training.png "Eval loss while training gpt2-medium from-scratch/pre-trained on the Snoop text.")
+![Eval loss while training gpt2-medium from-scratch/pre-trained on the Snoop text.](snoops-gpt2-training.png "Eval loss while training gpt2-medium from-scratch/pre-trained on the Snoop text.")
 
 Surprisingly gpt2 with OpenAI pre-training (blue) is actually already very accurate on the Snoop text.
 
@@ -120,9 +120,9 @@ When having it generate text with short prompts I found it to be far less accura
 
 [Here](https://app.wandb.ai/fraser/conala) you can see it fine-tuned on [CoNaLa](https://conala-corpus.github.io) (a description-to-code translation task). The Snoop data is better than no pre-training but not as good as gpt2 with OpenAI pre-training. Of course the Snoops model hasn't had the same amount of training time nor has it seen natural language before so its not a fair test.
 
-![Fine-tuning gpt2 from scratch vs pre-trained.]({{ site.baseurl }}/images/conala-gpt2.png "Fine-tuning gpt2 from scratch vs pre-trained.")
+![Fine-tuning gpt2 from scratch vs pre-trained.](conala-gpt2.png "Fine-tuning gpt2 from scratch vs pre-trained.")
 
-![Fine-tuning Snoop pre-trained vs OpenAI pre-trained.]({{ site.baseurl }}/images/conala-gpt2-pretrained.png "Fine-tuning Snoop pre-trained vs OpenAI pre-trained.")
+![Fine-tuning Snoop pre-trained vs OpenAI pre-trained.](conala-gpt2-pretrained.png "Fine-tuning Snoop pre-trained vs OpenAI pre-trained.")
 
 ## Future Work
 

@@ -32,7 +32,7 @@ To show this I'm releasing [T5-VAE](https://github.com/Fraser-Greenlee/T5-VAE) a
 
 To understand how this works and the ways it differs from previous systems, it is important to know how an autoencoder works, specifically a Maximum Mean Discrepancy Variational Autoencoder.
 
-[![.]({{ site.baseurl }}/images/prog_synth/autoencoder.png)]({{ site.baseurl }}/images/prog_synth/autoencoder.png)
+[![.](prog_synth/autoencoder.png)
 
 An Autoencoder learns to recreate its training data by compressing the data into a compressed representation called a "latent code" and decompressing it back into the original data.
 Each latent code is just a vector of numbers with each number constrained within some bounds (between -1, 1 in this case by a [Tanh function](https://pytorch.org/docs/stable/generated/torch.nn.Tanh.html#torch.nn.Tanh)).
@@ -70,7 +70,7 @@ If your keen to learn more about MMD-VAE you should check out [this post](https:
 Lets put this model to use to generate some structured sequences.
 The [T5 model](https://huggingface.co/transformers/model_doc/t5.html) provided by Huggingface will create the Encoder & Decoder for the sequences. To get a compressed encoding of the inputs, the inputs are first padded to ensure each the sequence is 12 tokens long. Finally, some fully-connected layers compress and then decompress the fixed length encodings. I've named this model “T5-VAE”.
 
-[![.]({{ site.baseurl }}/images/prog_synth/t5-vae.png)]({{ site.baseurl }}/images/prog_synth/t5-vae.png)
+[![.](prog_synth/t5-vae.png)
 
 This model is then trained to recreate its input tokens with the MMD loss on its latent code. Once training is complete it is possible to start generating some sequences!
 

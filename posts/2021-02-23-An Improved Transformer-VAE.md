@@ -12,7 +12,7 @@ title: An Improved Transformer-VAE
 
 ---
 
-![]({{ site.baseurl }}/images/0-6.png "Tranformer-VAE on MNIST pixels.")
+![](0-6.png "Tranformer-VAE on MNIST pixels.")
 
 I have made an improved Transformer-VAE that gives much more compelling interpolations on a wider range of tasks than my previous work [T5-VAE](https://fraser-greenlee.github.io/2020/08/13/Transformers-as-Variational-Autoencoders.html).
 You can try out training in [Colab](https://colab.research.google.com/drive/1S8sUSkc_7ON00HDnse1MUXTTflo59VxA?usp=sharing) or check out the [source code](https://github.com/Fraser-Greenlee/transformer-vae).
