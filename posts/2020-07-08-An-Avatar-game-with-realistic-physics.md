@@ -9,7 +9,9 @@ description: Finding the physics of water bending.
 image: https://raw.githubusercontent.com/Fraser-Greenlee/fastpages/master/images/katara_waterbend_arrows.gif
 layout: post
 title: An-Avatar-game-with-realistic-physics
-
+resources:
+- "*.mp4"
+- "../games/*"
 ---
 
 After watching [Avatar: The Last Airbender](https://www.imdb.com/title/tt0417299/) I wanted to experience bending the elements just like in the show.
@@ -31,7 +33,7 @@ It comes with this demo below, **click below** to try it!
 
 <!-- {% raw %} -->
 <figure class="iframe">
-    <iframe src="/games/LiquidFun-ColorFaucet"></iframe>
+    <iframe src="/games/LiquidFun-ColorFaucet.html"></iframe>
 </figure>
 <!-- {% endraw %} -->
 
@@ -59,7 +61,7 @@ Below I show the cell values with white arrows (longer for greator velocity incr
 
 <!-- {% raw %} -->
 <figure class="iframe">
-    <iframe src="/games/LiquidFun-ColorFaucet-Bending"></iframe>
+    <iframe src="/games/LiquidFun-ColorFaucet-Bending.html"></iframe>
 </figure>
 <!-- {% endraw %} -->
 
