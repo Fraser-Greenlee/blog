@@ -196,6 +196,13 @@
     "text": "Footnotes"
   },
   {
+    "objectID": "posts/2023-01-13-How-I-made-a-BABA-IS-YOU-clone.html",
+    "href": "posts/2023-01-13-How-I-made-a-BABA-IS-YOU-clone.html",
+    "title": "Fras Green",
+    "section": "",
+    "text": "I made a BABA IS YOU demake!\nYou can play it here and view the source code here.\nThe whole thing is made with Pyxel a retro game engine for Python. Now with Web Assembly you can easily export Pyxel games to the browser!\n\n\n\nBABA IS YOU demake screenshot."
+  },
+  {
     "objectID": "posts/2020-08-13-Transformers-as-Variational-Autoencoders.html",
     "href": "posts/2020-08-13-Transformers-as-Variational-Autoencoders.html",
     "title": "Transformers-as-Variational-Autoencoders",
@@ -249,7 +256,7 @@
     "href": "index.html",
     "title": "Fras Green",
     "section": "",
-    "text": "Making a Transformer-VAE with JAX.\n\n\n\n\n\n\n\nML\n\n\nTransformer-VAE\n\n\n\n\nAnd how you can make new Transformers with JAX.\n\n\n\n\n\n\nJun 13, 2021\n\n\n\n\n\n\n  \n\n\n\n\nInterpolating the internet\n\n\n\n\n\n\n\nML\n\n\n\n\nWhat happens when every plausible idea is an inference away.\n\n\n\n\n\n\nMar 11, 2021\n\n\n\n\n\n\n  \n\n\n\n\nAn-Improved-Transformer-VAE\n\n\n\n\n\n\n\nML\n\n\nLarge prior-free models\n\n\nTransformer-VAE\n\n\n\n\nAn easy to use repo with SOTA performance.\n\n\n\n\n\n\nFeb 23, 2021\n\n\n\n\n\n\n  \n\n\n\n\nTransformer-VAE-for-Program-Synthesis\n\n\n\n\n\n\n\nML\n\n\nLarge prior-free models\n\n\ncode\n\n\nTransformer-VAE\n\n\n\n\nFind the right program in a latent space.\n\n\n\n\n\n\nAug 25, 2020\n\n\n\n\n\n\n  \n\n\n\n\nTransformers-as-Variational-Autoencoders\n\n\n\n\n\n\n\nML\n\n\nLarge prior-free models\n\n\nTransformer-VAE\n\n\n\n\nAvoid posterior collapse even with a huge model.\n\n\n\n\n\n\nAug 13, 2020\n\n\n\n\n\n\n  \n\n\n\n\nAn-Avatar-game-with-realistic-physics\n\n\n\n\n\n\n\ngames\n\n\nsimulation\n\n\n\n\nFinding the physics of water bending.\n\n\n\n\n\n\nJul 8, 2020\n\n\n\n\n\n\n  \n\n\n\n\nA dataset of ran code\n\n\n\n\n\n\n\nML\n\n\ndatasets\n\n\ncode\n\n\n\n\nLearning from state changes in 1 million Python programs.\n\n\n\n\n\n\nJun 25, 2020\n\n\n\n\n\n\nNo matching items"
+    "text": "I made a BABA IS YOU demake!\n\n\n\n\n\n\n\n\n\n\n \n\n\n\n\n  \n\n\n\n\nMaking a Transformer-VAE with JAX.\n\n\n\n\n\n\n\nML\n\n\nTransformer-VAE\n\n\n\n\nAnd how you can make new Transformers with JAX.\n\n\n\n\n\n\nJun 13, 2021\n\n\n\n\n\n\n  \n\n\n\n\nInterpolating the internet\n\n\n\n\n\n\n\nML\n\n\n\n\nWhat happens when every plausible idea is an inference away.\n\n\n\n\n\n\nMar 11, 2021\n\n\n\n\n\n\n  \n\n\n\n\nAn-Improved-Transformer-VAE\n\n\n\n\n\n\n\nML\n\n\nLarge prior-free models\n\n\nTransformer-VAE\n\n\n\n\nAn easy to use repo with SOTA performance.\n\n\n\n\n\n\nFeb 23, 2021\n\n\n\n\n\n\n  \n\n\n\n\nTransformer-VAE-for-Program-Synthesis\n\n\n\n\n\n\n\nML\n\n\nLarge prior-free models\n\n\ncode\n\n\nTransformer-VAE\n\n\n\n\nFind the right program in a latent space.\n\n\n\n\n\n\nAug 25, 2020\n\n\n\n\n\n\n  \n\n\n\n\nTransformers-as-Variational-Autoencoders\n\n\n\n\n\n\n\nML\n\n\nLarge prior-free models\n\n\nTransformer-VAE\n\n\n\n\nAvoid posterior collapse even with a huge model.\n\n\n\n\n\n\nAug 13, 2020\n\n\n\n\n\n\n  \n\n\n\n\nAn-Avatar-game-with-realistic-physics\n\n\n\n\n\n\n\ngames\n\n\nsimulation\n\n\n\n\nFinding the physics of water bending.\n\n\n\n\n\n\nJul 8, 2020\n\n\n\n\n\n\n  \n\n\n\n\nA dataset of ran code\n\n\n\n\n\n\n\nML\n\n\ndatasets\n\n\ncode\n\n\n\n\nLearning from state changes in 1 million Python programs.\n\n\n\n\n\n\nJun 25, 2020\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
