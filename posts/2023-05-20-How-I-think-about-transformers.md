@@ -1,5 +1,51 @@
 # Just try to write what I said to Carlos & myself
 
+Right now the big open question is how will I make these map visualizations.
+I think the only sensible way is to use the last token encoding.
+I should look at what library Anthropic used in their viz for the model-written evaluations.
+- There's a new Viz library for JS I saw Huggingface tweet about... maybe I should use that?
+
+I need to decide on my viz setup here.
+This is a super important point.
+If I choose the right setup I'll get excellent results that I can share widely and maybe even use at Cohere.
+If I choose a bad setup this work will take way too long and I'll never complete this post.
+
+Lets first think of the requirements...
+1. UI must be interactive with a web UI.
+2. It would be nice if the model can be sampled from in the browser so people can try it out on their own data points.
+3. Model must have a decent level of performance and be open source.
+
+I should also think in terms of what I would like to do in the future...
+1. See how the space changes during instruction fine-tuning.
+2. Sample from the model with data points that are close to instruct examples.
+
+**Viz Setup Ideas**
+
+**Dolly**
+Huggingface open source model.
+- Weights: https://huggingface.co/databricks/dolly-v2-7b https://huggingface.co/databricks/dolly-v2-3b
+- Instruct dataset: https://huggingface.co/datasets/databricks/databricks-dolly-15k
+- Pre-train dataset: The Pile, more details here https://huggingface.co/EleutherAI/pythia-2.8b
+
+Good points:
+- Should perform decently.
+- Gives me easy access to all of the intstruct data.
+- Has a 3B & 7B models, can likely inference on this using Google Collab.
+
+Bad points:
+- Deffo can't inference in web, but what could!
+- Unclear if I could run the instruct fine-tune from Collab.
+
+**Data**
+
+
+
+**How to actually code this?**
+
+Use Google Collab with HF to record encodings for all of the traning and testing data.
+
+
+
 # How I think about transformers.
 
 I've heard a lot of magical thinking about transformers especially during the [recent AI Doom hype]() so I want to put out my own perspective on what transformers are and how we can understand what they can and can't do.
@@ -11,12 +57,18 @@ Transformers, like all deep learning architectures work by learning a point-by-p
 Inputs and outputs are mapped to encodings, high dimensional vectors that describe points in space.
 One way to picture this is as a map.
 
-[Interactive map of points.]
+[
+    Interactive map of prompt-completion points.
+    Make this using the EOS encoding (or possibly a reward model encoding).
+    This just shows a collection of eval prompt-completions.
+]
 
 Semtantically similar concepts are put closer together with differenct directions on the map corresponding to different properties.
 When you make a new request the model leverages the nearbye points its seen during training to make your response.
 
-[example from real embedding space, maybe that joke one?]
+[
+    Same map showing 2/3 training prompt-completions and a new prompt-completion.
+]
 
 This is fundamental to how all deep learning models work, be they image generators, transcribers or language generators.
 All deep learning models work by discovering abstract concepts, arranging examples by those concepts and utilizing those examples during inference.
@@ -39,7 +91,11 @@ But transformers don't have to just output a single word.
 They are very effective at generating long, coherent texts.
 We can picture these long tasks as a chain in the output space.
 
-[Plot of a text output as a chain.]
+[
+    Plot of a text output as a chain.
+    COT can be thought of as finding a higher likelihood path that gets to the right answer.
+    Plot points with likelihood to show the chain.
+]
 
 These longer generations can form a path that gets us from a question to an answer while staying within our training domain.
 
@@ -74,6 +130,8 @@ Its training data has common patterns of thought which form long chains that we 
 Some key things to note from this:
 - Chain of thought reasoning is not "describing the transformers thoughts". It does take reasoning that was already going on inside the transformer and make it visible. LLM chain of thought reasoning is a recording of other people's reasoning that the transformer can imitate using its training data.
 - Language model reasoning is not based on compute, it is not reasoning by itself, it is making plausible chains of thought using examples from its training data.
+- - If you just had the model write out a "." token for when it was thinking it would not get to the correct answer more frequently.
+- - For a language model to "think" it must write out its steps clearly.
 
 ## What does this have to do with "alignment"?
 
@@ -134,7 +192,7 @@ Allows the transformer to solve challenging new tasks.
 Adds a toolset for improving the transformer using the transformer.
 First task the model with a question answering task, then have the model look up the answer and check if it was correct.
 
-6. OS (hypothetical)
+6. OS
 
 Instead of working in a dialgue format where transformer completions are immediately sent, the transformer uses a text based Operating System.
 It writes out its thinking, tool use, answer, critiques its answer and rewrites it, hitting "Send" only when a good response is ready.
@@ -143,13 +201,13 @@ It writes out its thinking, tool use, answer, critiques its answer and rewrites 
 
 This will allow for far more complex question answering with much more consistent responses.
 
-7. Auto-Worker (hypothetical)
+7. Auto-Worker
 
 Instead of being given small, bite-size tasks the OS using transformer acts as a full remote worker.
 You interact with it using Slack and email.
 It writes acts in the same way as before but it can handle much longer contexts and make step-by-step plans.
 
-8. Collaboration (hypothetical)
+8. Collaboration
 
 As Auto-Workers quickly become commonplace there becomes a need to have them interact and work well with eachother.
 I suspect having a range of personas in an organization will be more effective.
@@ -158,7 +216,7 @@ Just run several different teams of models on a given task and see what mix work
 
 Just to be clear, I am describing Auto-Workers that have been simulated working together in teams and through this have been optimized to be more effective.
 
-9. Society (hypothetical)
+9. Society
 
 At this point Auto-Agents far outstrip human capabilities.
 They have demographically transformed the world making up the vast magority of "people" on earth.
@@ -176,6 +234,13 @@ They will be human just with far greator capabilities.
 Hopefully these auto-agents will find a way to improve our own capabilities so we can join them in the heavens.
 
 
+# Closing Thoughts
+
+Right now we are at step 3/5 with chain-of-thought reasoning being underutilized.
+I really hope we can keep making progress on transformers.
+Its this magical technology that if it works out can effectivley give us a limitless supply of smart, hard-working people.
+
+-------------------------------------
 
 
 # BACKGROUND
