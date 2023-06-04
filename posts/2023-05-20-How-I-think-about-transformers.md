@@ -35,16 +35,21 @@ Good points:
 Bad points:
 - Deffo can't inference in web, but what could!
 - Unclear if I could run the instruct fine-tune from Collab.
+- Instruct setup is kind of basic, just 15k instruct style examples.
 
-**Data**
+**RedPajama**
 
+https://huggingface.co/togethercomputer/RedPajama-INCITE-Chat-3B-v1
 
+Same as **Dolly** except:
+- Better performance.
+- Trained on many instruct sources, including with test sets.
+- Has scripts to make handling its pre-training data more accessible.
 
 **How to actually code this?**
 
 Use Google Collab with HF to record encodings for all of the traning and testing data.
-
-
+Plot this and then play around with sampling from the model and checking out eval results.
 
 # How I think about transformers.
 
