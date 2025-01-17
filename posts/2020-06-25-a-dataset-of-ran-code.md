@@ -1,17 +1,16 @@
 ---
 aliases:
-- /ML/code/datasets/2020/06/25/a-dataset-of-ran-code
+  - /ML/code/datasets/2020/06/25/a-dataset-of-ran-code
 categories:
-- ML
-- datasets
-- code
-date: '2020-06-25'
+  - ML
+  - datasets
+  - code
+date: "2020-06-25"
 description: Learning from state changes in 1 million Python programs.
 image: https://raw.githubusercontent.com/Fraser-Greenlee/fastpages/master/images/snoops-output.png
 layout: post
 title: A dataset of ran code
 toc: false
-
 ---
 
 Existing ML for code methods often learn from [raw source code](https://github.blog/2019-09-26-introducing-the-codesearchnet-challenge/) and sometimes use [data flow](https://slideslive.com/38917598/program-understanding-synthesis-and-verification-with-graph-neural-networks) to understand programs.
@@ -95,7 +94,7 @@ Snoop dynamically adds logs to your code showing what has executed & which state
 
 ![Some Snoop output.](snoops-output.png "Some Snoop output.")
 
-Next step was to run all the code snippets. The script used to run the code and progress logs can be found [here](https://app.wandb.ai/fraser/run-code-snippets/runs/3q9pzype/files/code/data/run_code/hacker-rank/get_problem_snoops.py). Thankfully running all these code snippets didn't cause many issues, I just had to watch out for some the occasional massive code snippet.
+Next step was to run all the code snippets. The script used to run the code and progress logs can be found ~~[here](https://app.wandb.ai/fraser/run-code-snippets/runs/3q9pzype/files/code/data/run_code/hacker-rank/get_problem_snoops.py)~~ (EDIT: I have unfortunatelty lost the script but you may enjoy looking at some [lovely progress graphs](https://wandb.ai/fraser/run-code-snippets/workspace) instead). Thankfully running all these code snippets didn't cause many issues, I just had to watch out for some the occasional massive code snippet.
 
 An interesting yet worrying feature of the Snoop files is that they are highly compressible, the zip file is 1/10th the size of the txt file. This is likely due to repetitions in the snoop due to the same code being ran repeatedly in for loops and method calls.
 
