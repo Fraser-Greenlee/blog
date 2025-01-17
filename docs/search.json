@@ -74,7 +74,7 @@
     "href": "posts/2021-06-13-TVAE-JAX.html",
     "title": "Making a Transformer-VAE with JAX.",
     "section": "",
-    "text": "JAX allows writing simple code that runs efficiently on TPUs. These models can then operate on massive scales setting new benchmarks in performance.\nFor an intro to JAX & Flax please checkout day 1 talks from the Huggingface Jax sprint.\n{% include youtube.html content=“https://youtu.be/fuAyUQcVzTY” %}\nYou can find the code from this post at t5-vae-python, t5-vae-wiki and the model code t5-vae-flax."
+    "text": "JAX allows writing simple code that runs efficiently on TPUs. These models can then operate on massive scales setting new benchmarks in performance.\nFor an intro to JAX & Flax please checkout day 1 talks from the Huggingface Jax sprint.\nhttps://youtu.be/fuAyUQcVzTY\nYou can find the code from this post at t5-vae-python, t5-vae-wiki and the model code t5-vae-flax."
   },
   {
     "objectID": "posts/2021-06-13-TVAE-JAX.html#making-your-own-transformer",
