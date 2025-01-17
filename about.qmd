@@ -12,7 +12,7 @@ about:
       href: https://www.linkedin.com/in/fraser-greenlee-9658a7101
     - icon: github
       text: Github
-      href: https://github.com/FraserGreenlee
+      href: https://github.com/Fraser-Greenlee
 
 ---
 

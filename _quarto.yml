@@ -8,7 +8,7 @@ website:
     right:
       - about.qmd
       - icon: github
-        href: https://github.com/FraserGreenlee
+        href: https://github.com/Fraser-Greenlee
       - icon: twitter
         href: https://twitter.com/FraserGreenlee
 format:
