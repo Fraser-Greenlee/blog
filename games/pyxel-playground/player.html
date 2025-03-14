@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
+</head>
+<body>
+<script>
+    // Get parameters either from URL or sessionStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const useSessionStorage = urlParams.get('useSessionStorage') === 'true';
+    
+    let code, resource;
+    
+    if (useSessionStorage) {
+        // Get code and resource from sessionStorage
+        code = sessionStorage.getItem('pyxelCode');
+        resource = sessionStorage.getItem('pyxelResource');
+    } else {
+        // Fall back to URL parameters for backward compatibility
+        code = decodeURIComponent(urlParams.get('code') || '');
+        resource = urlParams.get('resource') || '';
+    }
+
+    if (resource) {
+        // Convert base64 back to binary
+        const binaryString = atob(resource);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        // Launch with resource
+        launchPyxel({
+            command: "run",
+            script: code,
+            name: "game.pyxres",
+            base64: resource
+        });
+    } else {
+        // Launch without resource
+        launchPyxel({
+            command: "run",
+            script: code
+        });
+    }
+</script>
+</body>
+</html>

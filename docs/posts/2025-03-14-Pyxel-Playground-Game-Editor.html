@@ -6,10 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2021-03-11">
-<meta name="description" content="What happens when every plausible idea is an inference away.">
 
-<title>Interpolating the internet – Fras Green</title>
+<title>pyxel-playground-game-editor – Fras Green</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -112,37 +110,7 @@ ul.task-list li input[type="checkbox"] {
     </nav>
 </header>
 <!-- content -->
-<header id="title-block-header" class="quarto-title-block default page-columns page-full">
-  <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-body">
-      <h1 class="title">Interpolating the internet</h1>
-                  <div>
-        <div class="description">
-          What happens when every plausible idea is an inference away.
-        </div>
-      </div>
-                          <div class="quarto-categories">
-                <div class="quarto-category">ML</div>
-              </div>
-                  </div>
-  </div>
-    
-  
-  <div class="quarto-title-meta">
-
-      
-      <div>
-      <div class="quarto-title-meta-heading">Published</div>
-      <div class="quarto-title-meta-contents">
-        <p class="date">March 11, 2021</p>
-      </div>
-    </div>
-    
-      
-    </div>
-    
-  
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<header id="title-block-header" class="quarto-title-block"></header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     
@@ -152,77 +120,15 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-
-<p>Large scale Deep Learning models can combine abstract concepts in new ways. <a href="https://openai.com/blog/openai-api/">GPT-3</a> can write stories while <a href="https://openai.com/blog/DALL·E/">DALL·E</a> makes images. These models are improving fast so I want to explore what improved versions will do and how they will change the internet.</p>
-<section id="the-best-content-generation-today" class="level2">
-<h2 class="anchored" data-anchor-id="the-best-content-generation-today">The best content generation today</h2>
-<p>The best AI content generators use large models trained on huge datasets.</p>
-<p>These models work by storing all their training data in a “latent space”<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Think of this as a map where content is arranged by its properties (e.g.&nbsp;going left words get angrier, pictures become more cat like as you move up, etc). To create new content we can simply adjust our positions to get new combinations of properties.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="face_interpolation.jpg" title="Moving between 2 real faces in latent space." class="img-fluid figure-img"></p>
-<figcaption>.</figcaption>
-</figure>
-</div>
-<p>Unlike Google Search which stores links and searches for results, a deep learning model combines aspects of existing content to make new results. A great example of this is DALL·E which works like Google image search on steroids, interpolating between relevent results rather than indexing them.</p>
-<p>Both are results for the prompt “a road sign with an image of a blue strawberry”:</p>
-<p>![<img src="Google a road sign with an image of a blue strawberry.png" title="Google" class="img-fluid" alt="."></p>
-<p>![<img src="DALL-E a road sign with an image of a blue strawberry.png" title="DALL·E" class="img-fluid" alt="."></p>
-<p>Notice that Google’s results are not relevent. It is perfectly plausible for their to be “a road sign with an image of a blue strawberry” but there aren’t many on the internet.</p>
-<p>Meanwhile every one of DALL·E’s generations are relevent. Of course producing these outputs currently takes a long time and is expensive but this tech is <a href="https://arxiv.org/abs/2001.08361">scaling fast</a>.</p>
-<p>A similar phenomenon is playing out with text.</p>
-<p>GPT-3 is trained to complete text prompts. Here ideas and concepts can be merged to reason &amp; write stories like in this hilarious example:</p>
-<p></p><div id="tweet-69131"></div><script>tweet={"url":"https:\/\/twitter.com\/jonathanfly\/status\/1284082774325039105","author_name":"Jonathan Fly \uD83D\uDC7E","author_url":"https:\/\/twitter.com\/jonathanfly","html":"\u003Cblockquote class=\"twitter-tweet\" align=\"center\"\u003E\u003Cp lang=\"en\" dir=\"ltr\"\u003EI am so, so sorry. I could not resist adding a single sentence and watching this beautiful meeting between Alan Turing and Claude Shannon descend into madness. \u003Ca href=\"https:\/\/t.co\/j0TXFPKyZE\"\u003Epic.twitter.com\/j0TXFPKyZE\u003C\/a\u003E\u003C\/p\u003E&mdash; Jonathan Fly \uD83D\uDC7E (@jonathanfly) \u003Ca href=\"https:\/\/twitter.com\/jonathanfly\/status\/1284082774325039105?ref_src=twsrc%5Etfw\"\u003EJuly 17, 2020\u003C\/a\u003E\u003C\/blockquote\u003E\n\u003Cscript async src=\"https:\/\/platform.twitter.com\/widgets.js\" charset=\"utf-8\"\u003E\u003C\/script\u003E\n\n","width":550,"height":null,"type":"rich","cache_age":"3153600000","provider_name":"Twitter","provider_url":"https:\/\/twitter.com","version":"1.0"};document.getElementById("tweet-69131").innerHTML = tweet["html"];</script><p></p>
-<p>Already people are <a href="https://liamp.substack.com/p/my-gpt-3-blog-got-26-thousand-visitors">generating articles</a> using GPT-3 by giving manual prompts.</p>
-<p>It is important to keep in mind that GPT-3 and DALL·E are almost the same model. They both use a large transformer with DALL·E using a VQ-VAE to compress images into token-like sequences. You can think of this as a learned compiler for images with GPT-3 acting as the programmer.</p>
-<p>This means we can apply the DALL·E format <code>{content search query} {VQ-VAE tokens}</code> to any form of data. Expect VQ-VAEs to allow a future GPT model to generate any form of content letting it generate full rendered web pages rather then just text.</p>
-</section>
-<section id="how-will-these-models-improve" class="level2">
-<h2 class="anchored" data-anchor-id="how-will-these-models-improve">How will these models improve?</h2>
-<p>The large datasets training these models are the same ones used by search engines.</p>
-<p>When we search today we hope someone has made something just like what we’re looking fo. With a large scale deep learning model that won’t be the case.</p>
-<p>Instead a search could query a large model thats interpolates between the best results to find that image, article, video, etc that exactly matches your query.</p>
-<p>Once these “Generators” become mainstream we’re going to have to change our perspective on what the internet is.</p>
-<p>We will no longer think of something being on or off the internet. The idea that someone has their “nudes posted online” will be a meaningless phrase as you will inevitably generate nudes as you search for them.</p>
-<p>The only value in “making” images will be in finding the right one, to search latent space to best fulfil someones needs.</p>
-<p>Most content will be generated on demand to a users needs but some will be automated, expect Spotify &amp; YouTube to take full advantage of their huge datasets to create content.</p>
-<p>Having these generators will feel imensly powerful, finaly I’ll get to make a <a href="../fastpages/games/simulation/2020/07/08/An-Avatar-game-with-realistic-physics.html">water bending VR game</a>, the amount of content posted online will tenfold!</p>
-<p>Eventually a new internet will emerge. One where rather than searching for a peice of content hand-made by a person, all content is generated to suit our individual needs. This will feel like we each have our own internet. One where all content matches just what we want.</p>
-</section>
-<section id="what-you-can-do-now." class="level2">
-<h2 class="anchored" data-anchor-id="what-you-can-do-now.">What you can do now.</h2>
-<p>If we are on the cusp of a new Google how can you take advantage of this? The best thing to do is get involved on early AI content generation tools. Some of these are completely autonomous and some require a human in the loop. Here are some ideas I’ve been considering.</p>
-<section id="transformer-vaes-as-a-search-engine" class="level3">
-<h3 class="anchored" data-anchor-id="transformer-vaes-as-a-search-engine">Transformer-VAEs as a search engine</h3>
-<p>To make a new Google your probably going to need a <a href="https://github.com/Fraser-Greenlee/transformer-vae">Transformer-VAE</a>.</p>
-<p>I’ve just released a project that allows using the transformer to interpolate over text and small images. Hopefully once I try training at scale I’ll be able to interpolate over entire documents.</p>
-<p>Once it can interpolate over entire documents why not use it with a search engine to interpolate between the top results to best match a query?</p>
-</section>
-<section id="auto-artbreeder" class="level3">
-<h3 class="anchored" data-anchor-id="auto-artbreeder">Auto ArtBreeder</h3>
-<p><a href="https://www.artbreeder.com">ArtBreeder</a> uses a mix of VAE’s &amp; GAN’s to generate images by combining latent variables of existing images to interpolate between them. Images are interpolated several times over to generate novel and strickingly different images.</p>
-<p>This is different to most content generators in that you can’t see an output image and easily know how to find it in latent space. In the future algorithms will be needed to discover new images in these spaces (<a href="https://youtu.be/lhYGXYeMq_E">see Kenith Stanley’s interview for more info</a>). Perhaps processing interpolated images with OpenAI’s new CLIP model will allow discovering new images?</p>
-<p>The final result would allow for fully automanus brainstorming. Use this to prompt a larger model and you could get some compelling &amp; creative outputs.</p>
-</section>
-<section id="other-ideas" class="level3">
-<h3 class="anchored" data-anchor-id="other-ideas">Other Ideas</h3>
-<p>These ideas work great for very flexible mediums like images and text where slight mstakes can go unnoticed.</p>
-<p>Could some clever fixes allow applying them to strict domains like program synthesis? Maybe you could use latent variables to add/remove concepts in a Python function?</p>
-</section>
-</section>
-<section id="footnotes" class="level2">
-<h2 class="anchored" data-anchor-id="footnotes">Footnotes</h2>
+<section id="pyxel-playground-a-web-based-game-editor" class="level1">
+<h1>Pyxel Playground: A Web-Based Game Editor</h1>
+<p>I’ve created a browser-based editor for making retro games with <a href="https://github.com/kitao/pyxel">Pyxel</a>, a Python retro game engine. It lets you code and play simple games right in your browser.</p>
+<p>You can try it live here: <a href="../games/pyxel-playground.html">Pyxel Playground</a></p>
 
 
 </section>
 
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
-
-<ol>
-<li id="fn1"><p>Since these models are trained with gradient descent they approximate non-parametric models (a.k.a. models that reason from their dataset rather than learning programs) <a href="https://arxiv.org/abs/2012.00152">see more here</a>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol>
-</section></div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -645,5 +551,4 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-<script src="https://platform.twitter.com/widgets.js"></script>
 </body></html>
