@@ -422,14 +422,6 @@ def update():
     # Make the text move
     text_x = text_x + text_speed
     
-    # TODO: Add code to make text bounce at screen edges
-    # FLAW: Text keeps going off screen and disappears!
-    # We need to check if text_x is too far left (< 0) or too far right (> 120)
-    # When this happens, we need to reverse the direction by changing text_speed's sign
-    
-    # if text_x < 0 or text_x > 120:
-    #     text_speed = -text_speed
-    
     # Change color when SPACE is pressed
     if pyxel.btnp(pyxel.KEY_SPACE):
         text_color = (text_color + 1) % 16  # Cycle through 16 colors
@@ -493,10 +485,6 @@ class Player:
         # Keep player inside screen
         self.x = max(0, min(WIDTH - self.size, self.x))
         self.y = max(0, min(HEIGHT - self.size, self.y))
-        
-        # TODO: Add code to check for win condition
-        # if self.score >= 5:
-        #     self.win = True
     
     def draw(self):
         # Draw player (blue square)
@@ -524,16 +512,10 @@ class Coin:
         self.y = pyxel.rndi(0, HEIGHT - 5)
     
     def update(self, player):
-        # FLAW: Collision detection is incomplete!
-        # This only checks if the top-left corner of the coin is inside the player
-        # We need to check all four sides for a proper collision
         
         # Check collision with player (broken - only checks one corner)
         if (self.x < player.x + player.size and
             self.x > player.x):
-            # TODO: Fix the collision by adding the remaining two sides
-            # and self.y < player.y + player.size and 
-            # self.y > player.y):
             
             # Collision! Collect coin
             player.score += 1
@@ -633,17 +615,6 @@ class Player:
             if (self.x < p_x + p_w and self.x + self.width > p_x and
                 self.y < p_y + p_h and self.y + self.height > p_y):
                 
-                # FLAW: Landing on platforms doesn't work!
-                # The code for detecting landing on platforms is missing,
-                # so the player falls through platforms
-                
-                # TODO: Add the platform landing detection
-                # Below is the code needed for landing on platforms from above:
-                # if self.vy > 0 and self.y < p_y:
-                #     self.y = p_y - self.height
-                #     self.vy = 0
-                #     self.on_ground = True
-                
                 # Hit ceiling
                 if self.vy < 0 and self.y + self.height > p_y + p_h:
                     self.y = p_y + p_h
@@ -666,11 +637,6 @@ class Player:
         flag_x = 140
         flag_y = 25
         
-        # TODO: Add code to detect collision with flag and set win state
-        # if (self.x < flag_x + 5 and self.x + self.width > flag_x and
-        #     self.y < flag_y + 15 and self.y + self.height > flag_y):
-        #     self.win = True
-            
     def draw(self):
         # Draw background
         pyxel.cls(0)
@@ -769,11 +735,6 @@ class Player:
         # Store previous position to check for collisions
         prev_x, prev_y = self.x, self.y
         
-        # FLAW: The player movement system uses btnp instead of btn
-        # This makes movement happen only on initial press, not continuous
-        # Handle movement with arrow keys
-        
-        # TODO: Fix the movement system by changing btnp to btn
         if pyxel.btnp(pyxel.KEY_UP):
             self.y -= self.move_speed
         if pyxel.btnp(pyxel.KEY_DOWN):
@@ -807,13 +768,7 @@ class Player:
         # Check if player has reached the treasure
         treasure_x = 14
         treasure_y = 11
-        
-        # TODO: Add code to check if player has reached the treasure
-        # player_tile_x = self.x // TILE_SIZE
-        # player_tile_y = self.y // TILE_SIZE
-        # if player_tile_x == treasure_x and player_tile_y == treasure_y:
-        #     self.win = True
-    
+            
     def draw(self):
         # Draw the player (blue square)
         pyxel.rect(self.x - self.size//2, self.y - self.size//2, 
@@ -943,8 +898,6 @@ class Enemy:
                 self.enemies.remove(enemy)
                 
     def check_collision(self, player):
-        # FLAW: Collision detection only checks if bullet is within enemy area
-        # But it doesn't check if the bullet is fully within the enemy boundaries
         
         # Check bullet collisions with enemies
         for bullet in player.bullets[:]:
@@ -958,11 +911,7 @@ class Enemy:
                 # It's missing proper Y-axis bounds checking
                 if (bullet_x > enemy_x and 
                     bullet_x < enemy_x + self.width):
-                    
-                    # TODO: Fix the collision by adding Y-axis bounds checking
-                    # and bullet_y > enemy_y and
-                    # bullet_y < enemy_y + self.height):
-                    
+                                        
                     # Remove bullet and enemy
                     if bullet in player.bullets:
                         player.bullets.remove(bullet)
@@ -1006,10 +955,6 @@ def update():
         enemies.check_collision(player)
         score += old_enemy_count - len(enemies.enemies)
         
-        # TODO: Add code to check for win condition
-        # if score >= 10:
-        #     game_win = True
-    
 def draw():
     pyxel.cls(0)
     
