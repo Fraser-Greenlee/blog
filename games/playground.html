@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -60,51 +61,17 @@
       min-width: 200px;
     }
 
-    .editor-tabs {
+    .editor-header {
       display: flex;
       background: #2d2d2d;
       border-bottom: 1px solid #333;
-    }
-
-    .editor-tab {
       padding: 8px 16px;
-      background: #333;
+    }
+
+    .editor-title {
       color: #fff;
-      border: none;
-      border-right: 1px solid #444;
-      cursor: pointer;
       font-family: "Press Start 2P", serif;
       font-size: 10px;
-    }
-
-    .editor-tab.active {
-      background: #1e1e1e;
-      border-bottom: 1px solid #1e1e1e;
-      margin-bottom: -1px;
-    }
-
-    .editor-tab-close {
-      margin-left: 8px;
-      color: #888;
-      cursor: pointer;
-    }
-
-    .editor-tab-close:hover {
-      color: #fff;
-    }
-
-    .new-tab-button {
-      padding: 8px;
-      background: #2d2d2d;
-      color: #888;
-      border: none;
-      cursor: pointer;
-      font-family: "Press Start 2P", serif;
-      font-size: 10px;
-    }
-
-    .new-tab-button:hover {
-      color: #fff;
     }
 
     .editor-actions {
@@ -130,10 +97,12 @@
       position: absolute;
       background-color: #333;
       min-width: 200px;
+      max-height: 400px;
       box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
       z-index: 100;
       border-radius: 4px;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
     
     .examples-dropdown:hover .dropdown-content {
@@ -174,8 +143,14 @@
       position: relative;
       flex-grow: 1;
     }
-
-    .editor-instance {
+    
+    #editor-tabs {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    
+    .editor-tab {
       width: 100%;
       height: 100%;
       position: absolute;
@@ -183,9 +158,45 @@
       left: 0;
       display: none;
     }
-
-    .editor-instance.active {
+    
+    .editor-tab.active {
       display: block;
+    }
+    
+    #editor {
+      width: 100%;
+      height: 100%;
+    }
+    
+    #media-editor {
+      width: 100%;
+      height: 100%;
+      background: #1e1e1e;
+    }
+    
+    .tab-buttons {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .tab-button {
+      padding: 8px 12px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 4px 4px 0 0;
+      cursor: pointer;
+      font-family: "Press Start 2P", serif;
+      font-size: 10px;
+      transition: background 0.2s;
+    }
+    
+    .tab-button:hover {
+      background: #444;
+    }
+    
+    .tab-button.active {
+      background: #4CAF50;
     }
 
     .right-panel {
@@ -198,39 +209,10 @@
       min-width: 200px;
     }
 
-    .tab-controls {
-      display: flex;
-      background: #333;
-      padding: 8px 8px 0;
-    }
-
-    .tab-controls label {
-      padding: 8px 16px;
-      background: #2d2d2d;
-      color: #fff;
-      border-radius: 4px 4px 0 0;
-      cursor: pointer;
-      margin-right: 4px;
-    }
-
-    .tab-radio {
-      display: none;
-    }
-
     .tab-content {
-      display: none;
-      flex-grow: 1;
-      padding: 16px;
-    }
-
-    #tab1:checked~#content1,
-    #tab2:checked~#content2 {
       display: flex;
-    }
-
-    #tab1:checked~.tab-controls label[for="tab1"],
-    #tab2:checked~.tab-controls label[for="tab2"] {
-      background: #1e1e1e;
+      flex-grow: 1;
+      height: 100%;
     }
 
     canvas {
@@ -240,8 +222,7 @@
       object-fit: contain;
     }
 
-    #content2 {
-      display: none;
+    #game-content {
       flex-grow: 1;
       position: relative;
       /* For proper Pyxel canvas positioning */
@@ -343,23 +324,33 @@
         <div class="examples-dropdown">
           <button class="action-button" id="examples-button">🎮 Examples</button>
           <div class="dropdown-content">
-            <a href="#" data-example="snake">Snake Game</a>
-            <a href="#" data-example="platformer">Platform Jumper</a>
-            <a href="#" data-example="shooter">Space Shooter</a>
-            <a href="#" data-example="puzzle">Block Puzzle</a>
-            <a href="#" data-example="pong">Pong Classic</a>
+            <a href="#" data-example="perlin_noise">Perlin Noise</a>
+            <a href="#" data-example="triangle_api">Triangle API</a>
+            <a href="#" data-example="click_game">Click Game</a>
+            <a href="#" data-example="snake">Snake</a>
+            <a href="#" data-example="shooter">Shooter</a>
+            <a href="#" data-example="platformer">Platformer</a>
+            <a href="#" data-example="jump_game">Jump Game</a>
+            <a href="#" data-example="tetris">Tetris</a>
+            <a href="#" data-example="lander">Lander</a>
+            <a href="#" data-example="baba_is_you">Baba Is You</a>
           </div>
         </div>
+        <button class="action-button" id="copy-setup-button">Prompt ChatGPT</button>
+        <button class="action-button" id="copy-code-button">Copy Code</button>
+        <button class="action-button" id="paste-button">Paste</button>
+        <button class="action-button" id="download-button">Download</button>
+        <button class="action-button" id="upload-button">Upload</button>
+        <input type="file" id="pyxapp-file-input" accept=".pyxapp" style="display: none;">
         <div class="spacer"></div>
-        <button class="action-button" id="save-button">💾 Save Project</button>
-        <button class="action-button" id="load-button">📂 Load Project</button>
-      </div>
-      <div class="editor-tabs">
-        <button class="editor-tab active" data-tab="tab1">main.py <span class="editor-tab-close">×</span></button>
-        <button class="new-tab-button">+</button>
+        <div class="tab-buttons">
+          <button class="tab-button active" id="code-tab-button">💻</button>
+          <button class="tab-button" id="media-tab-button">🎨</button>
+        </div>
       </div>
       <div class="editor-container">
-        <div id="editor-tab1" class="editor-instance active">import pyxel
+        <div id="editor-tabs">
+          <div id="editor" class="editor-tab active">import pyxel
 
 pyxel.init(160, 120)
 
@@ -372,231 +363,47 @@ def draw():
   pyxel.text(55, 41, "Hello, Pyxel!", pyxel.frame_count % 16)
 
 pyxel.run(update, draw)</div>
+          <div id="media-editor" class="editor-tab">
+            <!-- Media editor iframe will be placed here -->
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="resizer" id="panel-resizer"></div>
 
     <div class="right-panel">
-      <input type="radio" id="tab1" name="tabs" class="tab-radio">
-      <input type="radio" id="tab2" name="tabs" class="tab-radio" checked>
-
-      <div class="tab-controls">
-        <label for="tab1">Media</label>
-        <label for="tab2">Game</label>
-      </div>
-
-      <div id="content1" class="tab-content">
-        <!-- Media Editor Container will be populated dynamically -->
-      </div>
-      <div id="content2" class="tab-content">
+      <div id="game-content" class="tab-content">
         <!-- Game Container will be populated dynamically -->
       </div>
     </div>
   </div>
 
-
-  <!-- Save Project Modal -->
-  <div id="save-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Save Project</h2>
-        <span class="close-modal" id="close-save-modal">×</span>
-      </div>
-      <div class="modal-body">
-        <label for="project-name">Project Name:</label>
-        <input type="text" id="project-name" class="modal-input" placeholder="My Pyxel Game">
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn modal-btn-secondary" id="cancel-save">Cancel</button>
-        <button class="modal-btn modal-btn-primary" id="confirm-save">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Load Project Modal -->
-  <div id="load-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Load Project</h2>
-        <span class="close-modal" id="close-load-modal">×</span>
-      </div>
-      <div class="modal-body">
-        <div id="projects-list">
-          <p>No saved projects found.</p>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn modal-btn-secondary" id="cancel-load">Cancel</button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    // Store all editors in an object
-    const editors = {};
-    let activeTab = 'tab1';
-    const FILE_NAME_ATTR = 'data-filename';
-
-    // Initialize the first editor
-    editors.tab1 = ace.edit("editor-tab1");
-    editors.tab1.setTheme("ace/theme/monokai");
-    editors.tab1.session.setMode("ace/mode/python");
-    editors.tab1.setOptions({
+    // Store our editor
+    let editor;
+    let resourceData = "";
+    let gameIframe = null;
+    let mediaIframe = null;
+    
+    // Initialize the editor
+    editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/python");
+    editor.setOptions({
         fontSize: "14px",
         showPrintMargin: false,
         highlightActiveLine: true,
         enableLiveAutocompletion: true
     });
-
-    // Set the filename attribute for the first tab
-    document.querySelector('.editor-tab[data-tab="tab1"]').setAttribute(FILE_NAME_ATTR, 'main.py');
-
-    // Function to create a new tab with editor
-    function createNewTab(filename = 'untitled.py', content = '') {
-        // Create a new tab ID
-        const tabId = 'tab' + (Object.keys(editors).length + 1);
-        
-        // Create tab button
-        const tabButton = document.createElement('button');
-        tabButton.className = 'editor-tab';
-        tabButton.setAttribute('data-tab', tabId);
-        tabButton.setAttribute(FILE_NAME_ATTR, filename);
-        tabButton.innerHTML = filename + ' <span class="editor-tab-close">×</span>';
-        
-        // Insert before the new tab button
-        const newTabButton = document.querySelector('.new-tab-button');
-        document.querySelector('.editor-tabs').insertBefore(tabButton, newTabButton);
-        
-        // Create editor div
-        const editorDiv = document.createElement('div');
-        editorDiv.id = 'editor-' + tabId;
-        editorDiv.className = 'editor-instance';
-        editorDiv.textContent = content;
-        document.querySelector('.editor-container').appendChild(editorDiv);
-        
-        // Initialize Ace editor for this tab
-        editors[tabId] = ace.edit(editorDiv.id);
-        editors[tabId].setTheme("ace/theme/monokai");
-        editors[tabId].session.setMode("ace/mode/python");
-        editors[tabId].setOptions({
-            fontSize: "14px",
-            showPrintMargin: false,
-            highlightActiveLine: true,
-            enableLiveAutocompletion: true
-        });
-        
-        // Set the content
-        if (content) {
-            editors[tabId].setValue(content, -1);
-        }
-        
-        // Activate the new tab
-        activateTab(tabId);
-        
-        return tabId;
-    }
-
-    // Function to activate a tab
-    function activateTab(tabId) {
-        // Deactivate all tabs
-        document.querySelectorAll('.editor-tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        document.querySelectorAll('.editor-instance').forEach(editor => {
-            editor.classList.remove('active');
-        });
-        
-        // Activate selected tab
-        document.querySelector(`.editor-tab[data-tab="${tabId}"]`).classList.add('active');
-        document.getElementById(`editor-${tabId}`).classList.add('active');
-        
-        activeTab = tabId;
-    }
-
-    // Function to close a tab
-    function closeTab(tabId) {
-        // Don't close if it's the last tab
-        if (Object.keys(editors).length <= 1) return;
-        
-        // Remove tab button
-        const tabButton = document.querySelector(`.editor-tab[data-tab="${tabId}"]`);
-        tabButton.remove();
-        
-        // Remove editor instance
-        const editorDiv = document.getElementById(`editor-${tabId}`);
-        editorDiv.remove();
-        
-        // Destroy Ace editor instance
-        editors[tabId].destroy();
-        delete editors[tabId];
-        
-        // Activate another tab
-        const newActiveTab = Object.keys(editors)[0];
-        activateTab(newActiveTab);
-    }
-
-    // Event listener for tab clicks
-    document.querySelector('.editor-tabs').addEventListener('click', (e) => {
-        // Handle tab activation
-        if (e.target.classList.contains('editor-tab')) {
-            const tabId = e.target.getAttribute('data-tab');
-            activateTab(tabId);
-        }
-        
-        // Handle tab close
-        if (e.target.classList.contains('editor-tab-close')) {
-            const tabId = e.target.parentElement.getAttribute('data-tab');
-            closeTab(tabId);
-            e.stopPropagation(); // Prevent tab activation
-        }
-        
-        // Handle new tab creation
-        if (e.target.classList.contains('new-tab-button')) {
-            createNewTab();
-        }
-    });
-
-
-    // Media and game iframe management
-    let resourceData = "";
-    let gameIframe = null;
-    let mediaIframe = null;
     
-    // Handle messages from iframes
-    window.addEventListener('message', (event) => {
-        if (event.data.type === 'pyxelResourceUpdate') {
-            // Update the resource data
-            resourceData = event.data.data;
-            
-            // Update game with new resource data if it exists
-            if (gameIframe) {
-                updateGame();
-            }
-        }
-    });
-    
-    // Function to create the media editor iframe
-    function createMediaEditor() {
-        const mediaContainer = document.getElementById('content1');
-        
-        // Clear the container
-        mediaContainer.innerHTML = '';
-        
-        // Create the iframe
-        mediaIframe = document.createElement('iframe');
-        mediaIframe.style.width = '100%';
-        mediaIframe.style.height = '100%';
-        mediaIframe.style.border = 'none';
-        mediaIframe.src = 'media.html';
-        
-        mediaContainer.appendChild(mediaIframe);
-    }
+    // Initialize the tabs
+    showCodeEditor();
     
     // Function to update or create the game iframe
     function updateGame() {
-        const gameContainer = document.getElementById('content2');
-        const code = editors[activeTab].getValue();
+        const gameContainer = document.getElementById('game-content');
+        const code = editor.getValue();
         
         // Store the code in sessionStorage to avoid URL size limitations
         sessionStorage.setItem('pyxelCode', code);
@@ -620,253 +427,103 @@ pyxel.run(update, draw)</div>
         }
     }
     
-    // Handle tab switching
-    const tab1Radio = document.getElementById('tab1');
-    const tab2Radio = document.getElementById('tab2');
-    
-    tab1Radio.addEventListener('change', () => {
-        if (tab1Radio.checked) {
-            // Clear game iframe to free resources
-            const gameContainer = document.getElementById('content2');
-            gameContainer.innerHTML = '';
-            gameIframe = null;
-            
-            // Create media editor
-            createMediaEditor();
-        }
-    });
-    
-    tab2Radio.addEventListener('change', () => {
-        if (tab2Radio.checked) {
-            // Clear media iframe to free resources
-            const mediaContainer = document.getElementById('content1');
-            mediaContainer.innerHTML = '';
-            mediaIframe = null;
-            
-            // Create/update game
-            updateGame();
-        }
-    });
-
-    // Function to serialize the project
-    function serializeProject() {
-        const files = {};
-        
-        // For each editor, get the filename and content
-        Object.keys(editors).forEach(tabId => {
-            const tabElement = document.querySelector(`.editor-tab[data-tab="${tabId}"]`);
-            const filename = tabElement.getAttribute(FILE_NAME_ATTR);
-            const content = editors[tabId].getValue();
-            
-            files[filename] = content;
-        });
-        
-        return {
-            files: files,
-            resourceData: resourceData
-        };
-    }
-    
-    // Function to deserialize and load a project
+    // Function to load a project
     function deserializeProject(projectData) {
-        // Clear existing tabs (except the first one)
-        Object.keys(editors).forEach(tabId => {
-            if (tabId !== 'tab1') {
-                closeTab(tabId);
-            }
-        });
+        // Get the content of main.py
+        const mainFile = 'main.py';
+        const content = projectData.files[mainFile];
         
-        // Set the content of the first tab
-        const firstFile = Object.keys(projectData.files)[0];
-        const firstContent = projectData.files[firstFile];
-        
-        const firstTab = document.querySelector('.editor-tab[data-tab="tab1"]');
-        firstTab.setAttribute(FILE_NAME_ATTR, firstFile);
-        firstTab.innerHTML = firstFile + ' <span class="editor-tab-close">×</span>';
-        
-        editors.tab1.setValue(firstContent, -1);
-        
-        // Create tabs for remaining files
-        Object.keys(projectData.files).slice(1).forEach(filename => {
-            createNewTab(filename, projectData.files[filename]);
-        });
+        // Update editor content
+        editor.setValue(content, -1);
         
         // Set resource data
         resourceData = projectData.resourceData || "";
         
-        // Activate the first tab
-        activateTab('tab1');
+        // Update the game display
+        updateGame();
         
-        // If game tab is selected, update the game display
-        if (tab2Radio.checked) {
-            updateGame();
+        // If the media editor iframe exists, reload it to show the new resources
+        if (mediaIframe) {
+            // Remove the old iframe
+            const mediaEditorContainer = document.getElementById('media-editor');
+            mediaEditorContainer.innerHTML = '';
+            mediaIframe = null;
+            
+            // If media tab is currently active, immediately reinitialize the media editor
+            if (document.getElementById('media-editor').classList.contains('active')) {
+                initializeMediaEditor();
+            }
+            // Otherwise, it will be initialized the next time the Media tab is clicked
+        }
+    }
+
+    // Add a save button to the editor actions
+    const saveButton = document.createElement('button');
+    saveButton.classList.add('action-button');
+    saveButton.textContent = '💾';
+    saveButton.id = 'save-button';
+    document.querySelector('.editor-actions').appendChild(saveButton);
+    
+    // Track if content has unsaved changes
+    let hasUnsavedChanges = false;
+    
+    // Function to update save button appearance
+    function updateSaveButtonState(unsaved) {
+        hasUnsavedChanges = unsaved;
+        const saveButton = document.getElementById('save-button');
+        if (unsaved) {
+            saveButton.textContent = '💾*';
+            saveButton.style.background = '#ff9800';
+        } else {
+            saveButton.textContent = '💾';
+            saveButton.style.background = '';
         }
     }
     
-    // Save Project Modal Functions
-    const saveModal = document.getElementById('save-modal');
-    const closeModalBtn = document.getElementById('close-save-modal');
-    const saveProjectBtn = document.getElementById('save-button');
-    const cancelSaveBtn = document.getElementById('cancel-save');
-    const confirmSaveBtn = document.getElementById('confirm-save');
-    const projectNameInput = document.getElementById('project-name');
-    
-    saveProjectBtn.addEventListener('click', () => {
-        saveModal.style.display = 'block';
-        projectNameInput.focus();
+    // Add event listener for the save button
+    document.getElementById('save-button').addEventListener('click', () => {
+        if (gameIframe) {
+            updateGame();
+            updateSaveButtonState(false);
+        }
     });
     
-    function closeSaveModal() {
-        saveModal.style.display = 'none';
-    }
-    
-    closeModalBtn.addEventListener('click', closeSaveModal);
-    cancelSaveBtn.addEventListener('click', closeSaveModal);
-    
-    confirmSaveBtn.addEventListener('click', () => {
-        const projectName = projectNameInput.value.trim() || 'Untitled Project';
-        
-        // Serialize the project
-        const projectData = serializeProject();
-        
-        // Get existing projects or initialize new storage
-        const savedProjects = JSON.parse(localStorage.getItem('pyxelProjects') || '{}');
-        
-        // Save this project
-        savedProjects[projectName] = {
-            timestamp: new Date().toISOString(),
-            data: projectData
-        };
-        
-        // Store back to localStorage
-        localStorage.setItem('pyxelProjects', JSON.stringify(savedProjects));
-        
-        closeSaveModal();
-        
-        // Show feedback
-        alert(`Project "${projectName}" saved successfully!`);
+    // Add event listener for cmd+s/ctrl+s
+    editor.commands.addCommand({
+        name: 'saveCommand',
+        bindKey: {win: 'Ctrl-S', mac: 'Command-S'},
+        exec: function() {
+            if (gameIframe) {
+                updateGame();
+                updateSaveButtonState(false);
+            }
+            return true; // Prevent browser's save dialog
+        }
     });
     
-    // Load Project Modal Functions
-    const loadModal = document.getElementById('load-modal');
-    const closeLoadModalBtn = document.getElementById('close-load-modal');
-    const loadProjectBtn = document.getElementById('load-button');
-    const cancelLoadBtn = document.getElementById('cancel-load');
-    const projectsList = document.getElementById('projects-list');
+    // Flag to ignore the first change event after loading an example
+    let ignoreNextChange = false;
     
-    function populateProjectsList() {
-        projectsList.innerHTML = '';
-        
-        const savedProjects = JSON.parse(localStorage.getItem('pyxelProjects') || '{}');
-        const projectNames = Object.keys(savedProjects);
-        
-        if (projectNames.length === 0) {
-            projectsList.innerHTML = '<p>No saved projects found.</p>';
+    // Add event listener to detect code changes
+    editor.session.on('change', (e) => {
+        // If we should ignore this change (from loading an example), don't update save button
+        if (ignoreNextChange) {
+            ignoreNextChange = false;
             return;
         }
-        
-        // Sort projects by timestamp (newest first)
-        projectNames.sort((a, b) => {
-            const timeA = new Date(savedProjects[a].timestamp).getTime();
-            const timeB = new Date(savedProjects[b].timestamp).getTime();
-            return timeB - timeA;
-        });
-        
-        // Create list of projects
-        const projectsListEl = document.createElement('ul');
-        projectsListEl.style.listStyle = 'none';
-        projectsListEl.style.padding = '0';
-        
-        projectNames.forEach(name => {
-            const project = savedProjects[name];
-            const date = new Date(project.timestamp).toLocaleDateString();
-            
-            const li = document.createElement('li');
-            li.style.padding = '8px';
-            li.style.margin = '4px 0';
-            li.style.background = '#333';
-            li.style.borderRadius = '4px';
-            li.style.display = 'flex';
-            li.style.justifyContent = 'space-between';
-            
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = name;
-            
-            const dateSpan = document.createElement('span');
-            dateSpan.textContent = date;
-            dateSpan.style.color = '#888';
-            dateSpan.style.fontSize = '8px';
-            
-            const actionsDiv = document.createElement('div');
-            
-            const loadBtn = document.createElement('button');
-            loadBtn.textContent = 'Load';
-            loadBtn.className = 'modal-btn modal-btn-primary';
-            loadBtn.style.marginRight = '4px';
-            loadBtn.style.padding = '4px 8px';
-            loadBtn.style.fontSize = '8px';
-            
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Delete';
-            deleteBtn.className = 'modal-btn modal-btn-secondary';
-            deleteBtn.style.padding = '4px 8px';
-            deleteBtn.style.fontSize = '8px';
-            
-            // Add event listeners
-            loadBtn.addEventListener('click', () => {
-                deserializeProject(project.data);
-                closeLoadModal();
-            });
-            
-            deleteBtn.addEventListener('click', () => {
-                if (confirm(`Are you sure you want to delete "${name}"?`)) {
-                    delete savedProjects[name];
-                    localStorage.setItem('pyxelProjects', JSON.stringify(savedProjects));
-                    populateProjectsList();
-                }
-            });
-            
-            actionsDiv.appendChild(loadBtn);
-            actionsDiv.appendChild(deleteBtn);
-            
-            li.appendChild(nameSpan);
-            li.appendChild(dateSpan);
-            li.appendChild(actionsDiv);
-            
-            projectsListEl.appendChild(li);
-        });
-        
-        projectsList.appendChild(projectsListEl);
-    }
-    
-    loadProjectBtn.addEventListener('click', () => {
-        populateProjectsList();
-        loadModal.style.display = 'block';
+        updateSaveButtonState(true);
     });
     
-    function closeLoadModal() {
-        loadModal.style.display = 'none';
-    }
-    
-    closeLoadModalBtn.addEventListener('click', closeLoadModal);
-    cancelLoadBtn.addEventListener('click', closeLoadModal);
-
-    // Add event listener to update the game when code changes
-    Object.values(editors).forEach(editor => {
-        editor.session.on('change', () => {
-            // Only update game if game tab is active
-            if (tab2Radio.checked && gameIframe) {
-                updateGame();
-            }
-        });
-    });
+    // Override setValue to set the ignore flag
+    const originalSetValue = editor.setValue;
+    editor.setValue = function(val, cursorPos) {
+        ignoreNextChange = true;
+        return originalSetValue.call(this, val, cursorPos);
+    };
     
     // Initialize the game on page load 
     // Wait for DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', () => {
-        // Make sure Game tab is selected (should already be checked in HTML)
-        tab2Radio.checked = true;
-        
         // Initialize the game view
         updateGame();
     });
@@ -876,678 +533,232 @@ pyxel.run(update, draw)</div>
         updateGame();
     }
     
-    // Example project templates
+    // Example project metadata
     const exampleProjects = {
-        snake: {
-            files: {
-                'main.py': `import pyxel
-
-# Snake Game Example
-# Use arrow keys to move the snake
-# Eat the food to grow
-
-WIDTH, HEIGHT = 160, 120
-GRID_SIZE = 8
-
-class Snake:
-    def __init__(self):
-        self.body = [(10, 10)]
-        self.direction = (1, 0)
-        self.food = (15, 15)
-        self.score = 0
-        self.game_over = False
-        
-    def update(self):
-        if self.game_over:
-            if pyxel.btnp(pyxel.KEY_R):
-                self.__init__()
-            return
-            
-        # Handle Input
-        if pyxel.btnp(pyxel.KEY_UP) and self.direction != (0, 1):
-            self.direction = (0, -1)
-        elif pyxel.btnp(pyxel.KEY_DOWN) and self.direction != (0, -1):
-            self.direction = (0, 1)
-        elif pyxel.btnp(pyxel.KEY_LEFT) and self.direction != (1, 0):
-            self.direction = (-1, 0)
-        elif pyxel.btnp(pyxel.KEY_RIGHT) and self.direction != (-1, 0):
-            self.direction = (1, 0)
-            
-        # Move snake
-        head_x, head_y = self.body[0]
-        new_head = (head_x + self.direction[0], head_y + self.direction[1])
-        
-        # Check for collisions
-        if (new_head[0] < 0 or new_head[0] >= WIDTH // GRID_SIZE or
-            new_head[1] < 0 or new_head[1] >= HEIGHT // GRID_SIZE or
-            new_head in self.body):
-            self.game_over = True
-            return
-            
-        self.body.insert(0, new_head)
-        
-        # Check for food
-        if new_head == self.food:
-            self.score += 1
-            # Generate new food position
-            while True:
-                food_x = pyxel.rndi(0, WIDTH // GRID_SIZE - 1)
-                food_y = pyxel.rndi(0, HEIGHT // GRID_SIZE - 1)
-                self.food = (food_x, food_y)
-                if self.food not in self.body:
-                    break
-        else:
-            self.body.pop()  # Remove tail if not eating
-    
-    def draw(self):
-        # Draw background
-        pyxel.cls(0)
-        
-        # Draw snake
-        for i, (x, y) in enumerate(self.body):
-            color = 11 if i == 0 else 3  # Head is different color
-            pyxel.rect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE, color)
-            
-        # Draw food
-        pyxel.rect(self.food[0] * GRID_SIZE, self.food[1] * GRID_SIZE, 
-                  GRID_SIZE, GRID_SIZE, 8)
-                  
-        # Display score
-        pyxel.text(5, 5, f"SCORE: {self.score}", 7)
-        
-        if self.game_over:
-            pyxel.text(WIDTH // 2 - 30, HEIGHT // 2, "GAME OVER", 8)
-            pyxel.text(WIDTH // 2 - 40, HEIGHT // 2 + 10, "PRESS R TO RESTART", 7)
-
-# Initialize game
-snake = Snake()
-pyxel.init(WIDTH, HEIGHT, title="Pyxel Snake")
-pyxel.frame_rate = 10  # Slower for snake game
-
-def update():
-    if pyxel.btnp(pyxel.KEY_Q):
-        pyxel.quit()
-    snake.update()
-    
-def draw():
-    snake.draw()
-    
-pyxel.run(update, draw)`
-            },
-            resourceData: ""
+        jump_game: {
+            title: "Jump Game",
+            path: "sample_games/jump_game/game.py",
+            resourceData: "sample_games/jump_game/game.pyxres"
         },
-        platformer: {
-            files: {
-                'main.py': `import pyxel
-
-# Simple Platform Game
-# Use arrow keys to move and space to jump
-
-WIDTH, HEIGHT = 160, 120
-GRAVITY = 0.5
-JUMP_POWER = 7
-MOVE_SPEED = 2
-
-class Player:
-    def __init__(self):
-        self.x = 40
-        self.y = 100
-        self.width = 8
-        self.height = 8
-        self.vy = 0
-        self.vx = 0
-        self.on_ground = False
-    
-    def update(self):
-        # Movement
-        self.vx = 0
-        if pyxel.btn(pyxel.KEY_LEFT):
-            self.vx = -MOVE_SPEED
-        if pyxel.btn(pyxel.KEY_RIGHT):
-            self.vx = MOVE_SPEED
-            
-        # Apply horizontal movement
-        self.x += self.vx
-        
-        # Handle boundaries
-        if self.x < 0:
-            self.x = 0
-        if self.x > WIDTH - self.width:
-            self.x = WIDTH - self.width
-            
-        # Apply gravity
-        self.vy += GRAVITY
-        self.y += self.vy
-        
-        # Simple platform collision (fixed platform)
-        platforms = [
-            (10, 80, 40, 8),   # (x, y, width, height)
-            (60, 60, 40, 8),
-            (100, 90, 50, 8),
-            (0, 110, WIDTH, 10) # Ground
-        ]
-        
-        self.on_ground = False
-        for p_x, p_y, p_w, p_h in platforms:
-            # Check if player is colliding with platform
-            if (self.x < p_x + p_w and self.x + self.width > p_x and
-                self.y < p_y + p_h and self.y + self.height > p_y):
-                
-                # Coming from above (landing on platform)
-                if self.vy > 0 and self.y < p_y:
-                    self.y = p_y - self.height
-                    self.vy = 0
-                    self.on_ground = True
-                
-                # Hit ceiling
-                elif self.vy < 0 and self.y + self.height > p_y + p_h:
-                    self.y = p_y + p_h
-                    self.vy = 0
-                
-                # Hit left side
-                elif self.vx > 0 and self.x < p_x:
-                    self.x = p_x - self.width
-                
-                # Hit right side
-                elif self.vx < 0 and self.x + self.width > p_x + p_w:
-                    self.x = p_x + p_w
-        
-        # Jump when space is pressed and on ground
-        if pyxel.btnp(pyxel.KEY_SPACE) and self.on_ground:
-            self.vy = -JUMP_POWER
-            self.on_ground = False
-            
-    def draw(self):
-        # Draw player
-        pyxel.rect(self.x, self.y, self.width, self.height, 11)
-        
-        # Draw platforms
-        platforms = [
-            (10, 80, 40, 8),
-            (60, 60, 40, 8),
-            (100, 90, 50, 8),
-            (0, 110, WIDTH, 10)
-        ]
-        
-        for p_x, p_y, p_w, p_h in platforms:
-            pyxel.rect(p_x, p_y, p_w, p_h, 3)
-
-# Initialize game
-player = Player()
-pyxel.init(WIDTH, HEIGHT, title="Pyxel Platformer")
-
-def update():
-    if pyxel.btnp(pyxel.KEY_Q):
-        pyxel.quit()
-    player.update()
-    
-def draw():
-    pyxel.cls(0)
-    player.draw()
-    pyxel.text(5, 5, "ARROWS: MOVE, SPACE: JUMP", 7)
-    
-pyxel.run(update, draw)`
-            },
-            resourceData: ""
+        click_game: {
+            title: "Click Game",
+            path: "sample_games/click_game/game.py",
+            resourceData: "sample_games/click_game/game.pyxres"
+        },
+        snake: {
+            title: "Snake",
+            path: "sample_games/snake/game.py",
+            resourceData: "sample_games/snake/game.pyxres"
+        },
+        triangle_api: {
+            title: "Triangle API",
+            path: "sample_games/triangle_api/game.py",
+            resourceData: "sample_games/triangle_api/game.pyxres"
         },
         shooter: {
-            files: {
-                'main.py': `import pyxel
-
-# Space Shooter Example
-# Use arrow keys to move and space to shoot
-
-WIDTH, HEIGHT = 160, 120
-
-class Player:
-    def __init__(self):
-        self.x = WIDTH // 2
-        self.y = HEIGHT - 20
-        self.width = 8
-        self.height = 8
-        self.speed = 2
-        self.bullets = []
-        self.shoot_cooldown = 0
-        
-    def update(self):
-        # Movement
-        if pyxel.btn(pyxel.KEY_LEFT):
-            self.x = max(0, self.x - self.speed)
-        if pyxel.btn(pyxel.KEY_RIGHT):
-            self.x = min(WIDTH - self.width, self.x + self.speed)
-            
-        # Shooting
-        if self.shoot_cooldown > 0:
-            self.shoot_cooldown -= 1
-            
-        if pyxel.btn(pyxel.KEY_SPACE) and self.shoot_cooldown == 0:
-            self.bullets.append([self.x + self.width // 2, self.y])
-            self.shoot_cooldown = 10
-            
-        # Update bullets
-        for bullet in self.bullets[:]:
-            bullet[1] -= 4  # Move bullet up
-            if bullet[1] < 0:
-                self.bullets.remove(bullet)
-    
-    def draw(self):
-        # Draw player
-        pyxel.rect(self.x, self.y, self.width, self.height, 11)
-        
-        # Draw bullets
-        for x, y in self.bullets:
-            pyxel.rect(x - 1, y, 2, 4, 10)
-
-class Enemy:
-    def __init__(self):
-        self.enemies = []
-        self.spawn_timer = 0
-        
-    def update(self):
-        # Spawn new enemies
-        if self.spawn_timer == 0:
-            x = pyxel.rndi(0, WIDTH - 8)
-            self.enemies.append([x, 0])
-            self.spawn_timer = 30
-        else:
-            self.spawn_timer -= 1
-            
-        # Move enemies down
-        for enemy in self.enemies[:]:
-            enemy[1] += 1
-            
-            # Remove if off screen
-            if enemy[1] > HEIGHT:
-                self.enemies.remove(enemy)
-                
-    def check_collision(self, player):
-        # Check bullet collisions
-        for bullet in player.bullets[:]:
-            for enemy in self.enemies[:]:
-                if (bullet[0] > enemy[0] and bullet[0] < enemy[0] + 8 and
-                    bullet[1] > enemy[1] and bullet[1] < enemy[1] + 8):
-                    if bullet in player.bullets:
-                        player.bullets.remove(bullet)
-                    if enemy in self.enemies:
-                        self.enemies.remove(enemy)
-    
-    def draw(self):
-        # Draw enemies
-        for x, y in self.enemies:
-            pyxel.rect(x, y, 8, 8, 8)
-
-# Initialize game
-player = Player()
-enemies = Enemy()
-score = 0
-
-pyxel.init(WIDTH, HEIGHT, title="Pyxel Shooter")
-
-def update():
-    global score
-    
-    if pyxel.btnp(pyxel.KEY_Q):
-        pyxel.quit()
-        
-    player.update()
-    enemies.update()
-    
-    # Check collisions and update score
-    old_enemy_count = len(enemies.enemies)
-    enemies.check_collision(player)
-    score += old_enemy_count - len(enemies.enemies)
-    
-def draw():
-    pyxel.cls(0)
-    
-    player.draw()
-    enemies.draw()
-    
-    # Display score
-    pyxel.text(5, 5, f"SCORE: {score}", 7)
-    
-pyxel.run(update, draw)`
-            },
-            resourceData: ""
+            title: "Shooter",
+            path: "sample_games/shooter/game.py",
+            resourceData: "sample_games/shooter/game.pyxres"
         },
-        puzzle: {
-            files: {
-                'main.py': `import pyxel
-
-# Block Puzzle Game
-# Use arrow keys to move blocks
-# Complete rows to clear them
-
-WIDTH, HEIGHT = 160, 120
-GRID_SIZE = 12
-GRID_WIDTH = WIDTH // GRID_SIZE
-GRID_HEIGHT = HEIGHT // GRID_SIZE
-
-class PuzzleGame:
-    def __init__(self):
-        # Create empty grid
-        self.grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
-        
-        # Create a block at the top
-        self.current_block = {
-            'x': GRID_WIDTH // 2,
-            'y': 0,
-            'shape': [[1, 1], [1, 1]] # 2x2 square
-        }
-        
-        self.game_over = False
-        self.score = 0
-        self.move_timer = 0
-        self.move_speed = 15  # Frames between moves
-        
-    def can_move(self, dx, dy):
-        # Check if the current block can move in the specified direction
-        for y, row in enumerate(self.current_block['shape']):
-            for x, cell in enumerate(row):
-                if cell == 0:
-                    continue
-                    
-                new_x = self.current_block['x'] + x + dx
-                new_y = self.current_block['y'] + y + dy
-                
-                # Check boundaries
-                if (new_x < 0 or new_x >= GRID_WIDTH or 
-                    new_y >= GRID_HEIGHT):
-                    return False
-                    
-                # Check collision with placed blocks
-                if new_y >= 0 and self.grid[new_y][new_x] != 0:
-                    return False
-                    
-        return True
-    
-    def place_block(self):
-        # Fix the current block in place
-        for y, row in enumerate(self.current_block['shape']):
-            for x, cell in enumerate(row):
-                if cell == 0:
-                    continue
-                    
-                grid_y = self.current_block['y'] + y
-                grid_x = self.current_block['x'] + x
-                
-                if grid_y >= 0:  # Only place visible blocks
-                    self.grid[grid_y][grid_x] = cell
-                    
-        # Check for completed rows
-        completed_rows = []
-        for y in range(GRID_HEIGHT):
-            if all(self.grid[y]):
-                completed_rows.append(y)
-        
-        # Clear completed rows
-        for row in completed_rows:
-            del self.grid[row]
-            self.grid.insert(0, [0 for _ in range(GRID_WIDTH)])
-            self.score += 10
-            
-        # Create new block
-        shapes = [
-            [[1, 1], [1, 1]],  # Square
-            [[0, 1, 0], [1, 1, 1]],  # T
-            [[1, 1, 0], [0, 1, 1]],  # Z
-            [[0, 1, 1], [1, 1, 0]],  # S
-            [[1, 0, 0], [1, 1, 1]]   # L
-        ]
-        
-        self.current_block = {
-            'x': GRID_WIDTH // 2 - 1,
-            'y': 0,
-            'shape': shapes[pyxel.rndi(0, len(shapes) - 1)]
-        }
-        
-        # Check for game over (collision in starting position)
-        for y, row in enumerate(self.current_block['shape']):
-            for x, cell in enumerate(row):
-                if cell == 0:
-                    continue
-                
-                grid_y = self.current_block['y'] + y
-                grid_x = self.current_block['x'] + x
-                
-                if grid_y >= 0 and self.grid[grid_y][grid_x] != 0:
-                    self.game_over = True
-    
-    def update(self):
-        if self.game_over:
-            if pyxel.btnp(pyxel.KEY_R):
-                self.__init__()
-            return
-            
-        # Handle input
-        if pyxel.btnp(pyxel.KEY_LEFT) and self.can_move(-1, 0):
-            self.current_block['x'] -= 1
-            
-        if pyxel.btnp(pyxel.KEY_RIGHT) and self.can_move(1, 0):
-            self.current_block['x'] += 1
-            
-        if pyxel.btnp(pyxel.KEY_DOWN):
-            # Move down faster
-            self.move_timer = self.move_speed
-            
-        if pyxel.btnp(pyxel.KEY_UP):
-            # Rotate (simplified - only works for some shapes)
-            old_shape = self.current_block['shape']
-            height = len(old_shape)
-            width = len(old_shape[0])
-            
-            # Create rotated shape
-            new_shape = [[0 for _ in range(height)] for _ in range(width)]
-            
-            for y in range(height):
-                for x in range(width):
-                    new_shape[x][height - 1 - y] = old_shape[y][x]
-                    
-            # Store old shape in case we need to revert
-            self.current_block['shape'] = new_shape
-            
-            # Revert if rotation causes collision
-            if not self.can_move(0, 0):
-                self.current_block['shape'] = old_shape
-            
-        # Auto-drop movement
-        self.move_timer += 1
-        if self.move_timer >= self.move_speed:
-            self.move_timer = 0
-            
-            if self.can_move(0, 1):
-                self.current_block['y'] += 1
-            else:
-                self.place_block()
-    
-    def draw(self):
-        pyxel.cls(0)
-        
-        # Draw grid
-        for y in range(GRID_HEIGHT):
-            for x in range(GRID_WIDTH):
-                if self.grid[y][x] != 0:
-                    pyxel.rect(x * GRID_SIZE, y * GRID_SIZE, 
-                              GRID_SIZE - 1, GRID_SIZE - 1, 11)
-        
-        # Draw current block
-        for y, row in enumerate(self.current_block['shape']):
-            for x, cell in enumerate(row):
-                if cell == 0:
-                    continue
-                    
-                draw_x = (self.current_block['x'] + x) * GRID_SIZE
-                draw_y = (self.current_block['y'] + y) * GRID_SIZE
-                
-                if draw_y >= 0:  # Only draw visible parts
-                    pyxel.rect(draw_x, draw_y, GRID_SIZE - 1, GRID_SIZE - 1, 8)
-        
-        # Draw score
-        pyxel.text(5, 5, f"SCORE: {self.score}", 7)
-        
-        if self.game_over:
-            pyxel.text(WIDTH // 2 - 30, HEIGHT // 2, "GAME OVER", 8)
-            pyxel.text(WIDTH // 2 - 40, HEIGHT // 2 + 10, "PRESS R TO RESTART", 7)
-
-# Initialize game
-puzzle = PuzzleGame()
-pyxel.init(WIDTH, HEIGHT, title="Pyxel Block Puzzle")
-
-def update():
-    if pyxel.btnp(pyxel.KEY_Q):
-        pyxel.quit()
-    puzzle.update()
-    
-def draw():
-    puzzle.draw()
-    
-pyxel.run(update, draw)`
-            },
-            resourceData: ""
+        platformer: {
+            title: "Platformer",
+            path: "sample_games/platformer/game.py",
+            resourceData: "sample_games/platformer/game.pyxres"
         },
-        pong: {
-            files: {
-                'main.py': `import pyxel
-
-# Pong Classic Example
-# Player 1: W/S keys
-# Player 2: Up/Down arrows
-
-WIDTH, HEIGHT = 160, 120
-PADDLE_WIDTH = 4
-PADDLE_HEIGHT = 20
-BALL_SIZE = 4
-PADDLE_SPEED = 2
-BALL_SPEED = 1.5
-
-class Pong:
-    def __init__(self):
-        # Paddles [x, y]
-        self.paddle1 = [5, HEIGHT // 2 - PADDLE_HEIGHT // 2]
-        self.paddle2 = [WIDTH - 5 - PADDLE_WIDTH, HEIGHT // 2 - PADDLE_HEIGHT // 2]
-        
-        # Ball [x, y, dx, dy]
-        self.ball = [WIDTH // 2, HEIGHT // 2, -BALL_SPEED, BALL_SPEED * 0.5]
-        
-        # Scores
-        self.score1 = 0
-        self.score2 = 0
-        
-    def update(self):
-        # Player 1 controls
-        if pyxel.btn(pyxel.KEY_W):
-            self.paddle1[1] = max(0, self.paddle1[1] - PADDLE_SPEED)
-        if pyxel.btn(pyxel.KEY_S):
-            self.paddle1[1] = min(HEIGHT - PADDLE_HEIGHT, self.paddle1[1] + PADDLE_SPEED)
-            
-        # Player 2 controls
-        if pyxel.btn(pyxel.KEY_UP):
-            self.paddle2[1] = max(0, self.paddle2[1] - PADDLE_SPEED)
-        if pyxel.btn(pyxel.KEY_DOWN):
-            self.paddle2[1] = min(HEIGHT - PADDLE_HEIGHT, self.paddle2[1] + PADDLE_SPEED)
-            
-        # Move ball
-        self.ball[0] += self.ball[2]
-        self.ball[1] += self.ball[3]
-        
-        # Ball collision with top/bottom
-        if self.ball[1] <= 0 or self.ball[1] >= HEIGHT - BALL_SIZE:
-            self.ball[3] = -self.ball[3]
-            
-        # Ball collision with paddles
-        # Paddle 1
-        if (self.ball[0] <= self.paddle1[0] + PADDLE_WIDTH and 
-            self.ball[1] + BALL_SIZE >= self.paddle1[1] and 
-            self.ball[1] <= self.paddle1[1] + PADDLE_HEIGHT):
-            self.ball[0] = self.paddle1[0] + PADDLE_WIDTH
-            self.ball[2] = -self.ball[2]
-            # Add some randomness to bounce
-            self.ball[3] += pyxel.rndf(-0.5, 0.5)
-            
-        # Paddle 2
-        if (self.ball[0] + BALL_SIZE >= self.paddle2[0] and 
-            self.ball[1] + BALL_SIZE >= self.paddle2[1] and 
-            self.ball[1] <= self.paddle2[1] + PADDLE_HEIGHT):
-            self.ball[0] = self.paddle2[0] - BALL_SIZE
-            self.ball[2] = -self.ball[2]
-            # Add some randomness to bounce
-            self.ball[3] += pyxel.rndf(-0.5, 0.5)
-            
-        # Scoring
-        if self.ball[0] < 0:
-            self.score2 += 1
-            self.reset_ball()
-        elif self.ball[0] > WIDTH:
-            self.score1 += 1
-            self.reset_ball()
-            
-    def reset_ball(self):
-        # Reset ball to center with random direction
-        self.ball = [
-            WIDTH // 2, 
-            HEIGHT // 2, 
-            BALL_SPEED if pyxel.rndf(0, 1) > 0.5 else -BALL_SPEED,
-            pyxel.rndf(-BALL_SPEED, BALL_SPEED)
-        ]
-    
-    def draw(self):
-        pyxel.cls(0)
-        
-        # Draw center line
-        for y in range(0, HEIGHT, 8):
-            pyxel.rect(WIDTH // 2 - 1, y, 2, 4, 7)
-        
-        # Draw paddles
-        pyxel.rect(self.paddle1[0], self.paddle1[1], PADDLE_WIDTH, PADDLE_HEIGHT, 11)
-        pyxel.rect(self.paddle2[0], self.paddle2[1], PADDLE_WIDTH, PADDLE_HEIGHT, 11)
-        
-        # Draw ball
-        pyxel.rect(self.ball[0], self.ball[1], BALL_SIZE, BALL_SIZE, 10)
-        
-        # Draw scores
-        pyxel.text(WIDTH // 4, 10, str(self.score1), 7)
-        pyxel.text(3 * WIDTH // 4, 10, str(self.score2), 7)
-
-# Initialize game
-pong = Pong()
-pyxel.init(WIDTH, HEIGHT, title="Pyxel Pong")
-
-def update():
-    if pyxel.btnp(pyxel.KEY_Q):
-        pyxel.quit()
-    pong.update()
-    
-def draw():
-    pong.draw()
-    
-pyxel.run(update, draw)`
-            },
-            resourceData: ""
-        }
+        perlin_noise: {
+            title: "Perlin Noise",
+            path: "sample_games/perlin_noise/game.py",
+            resourceData: "sample_games/perlin_noise/game.pyxres"
+        },
+        baba_is_you: {
+            title: "Baba Is You",
+            path: "sample_games/baba_is_you/game.py",
+            resourceData: "sample_games/baba_is_you/game.pyxres"
+        },
+        tetris: {
+            title: "Tetris",
+            path: "sample_games/tetris/game.py",
+            resourceData: "sample_games/tetris/game.pyxres"
+        },
+        lander: {
+            title: "Lander",
+            path: "sample_games/lander/game.py",
+            resourceData: "sample_games/lander/game.pyxres"
+        },
     };
     
-    // Function to load an example project
-    function loadExampleProject(exampleId) {
-        const example = exampleProjects[exampleId];
-        if (!example) return;
+    // Function to load example code from file
+    async function loadExampleFile(path) {
+        try {
+            const response = await fetch(path);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch example: ${response.status} ${response.statusText}`);
+            }
+            return await response.text();
+        } catch (error) {
+            console.error("Error loading example:", error);
+            return "# Error loading example\n# " + error.message;
+        }
+    }
+    
+    // Function to fetch resource data (if available)
+    async function fetchResourceData(resourcePath) {
+        if (!resourcePath) return "";
         
-        // Load the example as a project
-        deserializeProject(example);
-        
-        // Switch to the Game tab to see the result
-        tab2Radio.checked = true;
-        updateGame();
+        try {
+            const response = await fetch(resourcePath);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch resource: ${response.status} ${response.statusText}`);
+            }
+            // Just verify the resource exists and return the path for later use
+            return resourcePath;
+        } catch (error) {
+            console.error("Error loading resource:", error);
+            return "";
+        }
     }
     
     // Add event listeners for example selection
     document.querySelectorAll('.dropdown-content a').forEach(link => {
-        link.addEventListener('click', (e) => {
+        link.addEventListener('click', async (e) => {
             e.preventDefault();
             const exampleId = e.target.getAttribute('data-example');
-            loadExampleProject(exampleId);
+            const example = exampleProjects[exampleId];
+            
+            if (example) {
+                try {
+                    // Show loading indicator
+                    document.body.style.cursor = 'wait';
+                    
+                    // Load the example code and resource data in parallel
+                    const [content, resourcePath] = await Promise.all([
+                        loadExampleFile(example.path),
+                        fetchResourceData(example.resourceData)
+                    ]);
+                    
+                    // Create a project object that matches our existing deserializeProject format
+                    const projectData = {
+                        files: {
+                            'main.py': content
+                        },
+                        resourceData: resourcePath || ""
+                    };
+                    
+                    // Load the project into the editor
+                    deserializeProject(projectData);
+                    
+                    // Reset the save button state to not highlight as if modified
+                    updateSaveButtonState(false);
+                    
+                    // Set the document title to include the example name
+                    document.title = `Pyxel Playground - ${example.title}`;
+                } catch (error) {
+                    console.error("Failed to load example:", error);
+                    alert("Failed to load example: " + error.message);
+                } finally {
+                    // Reset cursor
+                    document.body.style.cursor = '';
+                }
+            }
         });
     });
     
+    // ChatGPT Integration
+    document.getElementById('copy-code-button').addEventListener('click', () => {
+        const code = editor.getValue();
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(code).then(() => {
+            // Change button text briefly to show success
+            const btn = document.getElementById('copy-code-button');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 1500);
+        });
+    });
+    
+    document.getElementById('copy-setup-button').addEventListener('click', () => {
+        const setupPrompt = `I'm working with Pyxel, a retro game engine for Python. 
+
+Pyxel is a retro game engine for Python that lets you create pixel art games easily.
+I am using a simple website to run and edit Pyxel so I can only use one python script and one 'game.pyxres' file.
+I am new to programming so explain things simply to me and take me through what you are doing step by step including debugging features to make things more clear.
+
+Key features of Pyxel:
+- 16 color palette
+- 3 banks of 256x256 sized images
+- 8 tilemaps of 256x256 size
+- 4 sound channels with 64 definable sounds
+- 8 music banks, each capable of combining 64 sounds
+- Keyboard, mouse, and gamepad input
+- Image and sound editor
+
+Pyxel uses the following drawing functions:
+- cls(col): Clear screen with color
+- pix(x, y, col): Draw a pixel
+- line(x1, y1, x2, y2, col): Draw a line
+- rect(x, y, w, h, col): Draw a rectangle
+- rectb(x, y, w, h, col): Draw the outline of a rectangle
+- circ(x, y, r, col): Draw a circle
+- circb(x, y, r, col): Draw the outline of a circle
+- blt(x, y, img, u, v, w, h, [colkey]): Draw an image from the resource
+- text(x, y, s, col): Draw text
+
+Pyxel's main flow is:
+1. Initialize with pyxel.init(width, height, ...)
+2. Define update() and draw() functions
+3. Run the game loop with pyxel.run(update, draw)
+
+The update() function runs game logic, and draw() renders the game state.
+
+Keyboard input is handled with:
+- pyxel.btn(key): Check if a key is held down
+- pyxel.btnp(key): Check if a key was just pressed
+- pyxel.btnr(key): Check if a key was just released
+
+Common keys are: pyxel.KEY_Q, pyxel.KEY_SPACE, etc.
+
+Note that I am using the Pyodide web version of pyxel.`;
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(setupPrompt).then(() => {
+            // Change button text briefly to show success
+            const btn = document.getElementById('copy-setup-button');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 1500);
+            
+            // Open ChatGPT in a new tab
+            window.open('https://chat.openai.com', '_blank');
+        });
+    });
+    
+    document.getElementById('paste-button').addEventListener('click', () => {
+        // Ask for permission to read clipboard
+        navigator.clipboard.readText().then(text => {
+            // Set editor content
+            editor.setValue(text, -1);
+            
+            // Update save state to indicate changes
+            updateSaveButtonState(true);
+            
+            // Show brief confirmation
+            const btn = document.getElementById('paste-button');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Pasted!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 1500);
+        }).catch(err => {
+            console.error('Failed to read clipboard: ', err);
+            alert('Could not access clipboard. Make sure you\'ve granted clipboard permission to this site.');
+        });
+    });
+
     // Panel resizer functionality
     const panelResizer = document.getElementById('panel-resizer');
     const editorPanel = document.querySelector('.editor-panel');
@@ -1594,9 +805,9 @@ pyxel.run(update, draw)`
         editorPanel.style.flex = '0 0 ' + newWidth + 'px';
         
         // Force Ace editor to update its size
-        Object.values(editors).forEach(editor => {
+        if (editor) {
             editor.resize();
-        });
+        }
     });
     
     document.addEventListener('mouseup', () => {
@@ -1612,22 +823,22 @@ pyxel.run(update, draw)`
             const editorWidth = editorPanel.offsetWidth;
             localStorage.setItem('pyxelEditorWidth', editorWidth);
             
-            // Make sure editors resize properly
-            Object.values(editors).forEach(editor => {
+            // Make sure editor resizes properly
+            if (editor) {
                 editor.resize();
-            });
+            }
         }
     });
     
-    // Resize editors when window changes
+    // Resize editor when window changes
     window.addEventListener('resize', () => {
-        // Resize all editors to fit the new layout
-        Object.values(editors).forEach(editor => {
+        // Resize editor to fit the new layout
+        if (editor) {
             editor.resize();
-        });
+        }
         
-        // Update game and media iframes if they exist
-        if (gameIframe || mediaIframe) {
+        // Update game iframe if it exists
+        if (gameIframe) {
             // Ensure panels maintain reasonable sizes in new window dimensions
             const containerWidth = document.querySelector('.container').clientWidth;
             const minWidth = 200;
@@ -1641,6 +852,411 @@ pyxel.run(update, draw)`
         }
     });
 
+    // Function to initialize the media editor
+    function initializeMediaEditor() {
+        const mediaEditorContainer = document.getElementById('media-editor');
+        
+        // Create the iframe for the media editor if it doesn't exist yet
+        if (!mediaIframe) {
+            // Store the resource data in sessionStorage if we have it
+            if (resourceData) {
+                if (typeof resourceData === 'string' && (resourceData.startsWith('data:') || resourceData.match(/^[A-Za-z0-9+/=]+$/))) {
+                    // This is already base64 data
+                    sessionStorage.setItem('pyxelResourceForEditor', resourceData);
+                    mediaIframe = document.createElement('iframe');
+                    mediaIframe.style.width = '100%';
+                    mediaIframe.style.height = '100%';
+                    mediaIframe.style.border = 'none';
+                    mediaIframe.src = 'media.html';
+                } else {
+                    // This is a path to a resource file - fetch it and convert to base64
+                    fetch(resourceData)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Failed to fetch resource: ${response.status} ${response.statusText}`);
+                            }
+                            return response.arrayBuffer();
+                        })
+                        .then(buffer => {
+                            // Convert to base64
+                            const base64Data = btoa(
+                                new Uint8Array(buffer)
+                                    .reduce((data, byte) => data + String.fromCharCode(byte), '')
+                            );
+                            
+                            // Store in sessionStorage
+                            sessionStorage.setItem('pyxelResourceForEditor', base64Data);
+                            
+                            // Create and load the iframe
+                            mediaIframe = document.createElement('iframe');
+                            mediaIframe.style.width = '100%';
+                            mediaIframe.style.height = '100%';
+                            mediaIframe.style.border = 'none';
+                            mediaIframe.src = 'media.html';
+                            mediaEditorContainer.appendChild(mediaIframe);
+                        })
+                        .catch(error => {
+                            console.error('Error loading resource file:', error);
+                            // Still create the iframe even if loading failed
+                            mediaIframe = document.createElement('iframe');
+                            mediaIframe.style.width = '100%';
+                            mediaIframe.style.height = '100%';
+                            mediaIframe.style.border = 'none';
+                            mediaIframe.src = 'media.html';
+                            mediaEditorContainer.appendChild(mediaIframe);
+                        });
+                    
+                    // Return early since the iframe will be created in the fetch callback
+                    return;
+                }
+            } else {
+                // No resource data, just create a basic iframe
+                mediaIframe = document.createElement('iframe');
+                mediaIframe.style.width = '100%';
+                mediaIframe.style.height = '100%';
+                mediaIframe.style.border = 'none';
+                mediaIframe.src = 'media.html';
+            }
+            
+            // Append the iframe to the container
+            mediaEditorContainer.appendChild(mediaIframe);
+        }
+    }
+    
+    // Function to show code editor tab
+    function showCodeEditor() {
+        document.getElementById('editor').classList.add('active');
+        document.getElementById('media-editor').classList.remove('active');
+        document.getElementById('code-tab-button').classList.add('active');
+        document.getElementById('media-tab-button').classList.remove('active');
+    }
+    
+    // Function to show media editor tab
+    function showMediaEditor() {
+        // Initialize the media editor if needed
+        initializeMediaEditor();
+        
+        document.getElementById('editor').classList.remove('active');
+        document.getElementById('media-editor').classList.add('active');
+        document.getElementById('code-tab-button').classList.remove('active');
+        document.getElementById('media-tab-button').classList.add('active');
+    }
+    
+    // Add event listeners for tab buttons
+    document.getElementById('code-tab-button').addEventListener('click', showCodeEditor);
+    document.getElementById('media-tab-button').addEventListener('click', showMediaEditor);
+    
+    // Add event listener for resource update messages from media editor
+    window.addEventListener('message', (event) => {
+        // Check if the message is a resource update
+        if (event.data && event.data.type === 'pyxelResourceUpdate') {
+            // Store the resource data as base64
+            resourceData = event.data.data;
+            console.log('Updated resource data from media editor');
+            
+            // If the game is running, update it with the new resource data
+            if (gameIframe) {
+                updateGame();
+            }
+            
+            // Don't automatically switch back to code editor to prevent infinite update loops
+        }
+    });
+    
+    // Function to create and download a Pyxel App (.pyxapp) file
+    async function downloadPyxelApp() {
+        try {
+            const code = editor.getValue();
+            
+            if (!code) {
+                console.error("No code to download");
+                return;
+            }
+            
+            // Get current example name or use 'pyxel-game' as default
+            const currentTitle = document.title.includes('-') ? 
+                document.title.split('-')[1].trim().toLowerCase().replace(/\s+/g, '_') : 
+                'pyxel_game';
+                
+            // Generate filename
+            const filename = `${currentTitle}.pyxapp`;
+            
+            // Create a new JSZip instance
+            const zip = new JSZip();
+            
+            // Add the Python code file
+            zip.file("app/game.py", code);
+            
+            // Add the startup script file marker
+            zip.file("app/.pyxapp_startup_script", "game.py");
+            
+            // Add resource file if we have one
+            if (resourceData) {
+                try {
+                    // If it's a base64 string from the media editor
+                    if (typeof resourceData === 'string') {
+                        if (resourceData.match(/^[A-Za-z0-9+/=]+$/)) {
+                            // Convert base64 to binary data
+                            const binaryString = atob(resourceData);
+                            const bytes = new Uint8Array(binaryString.length);
+                            for (let i = 0; i < binaryString.length; i++) {
+                                bytes[i] = binaryString.charCodeAt(i);
+                            }
+                            
+                            // Use a standard resource file name
+                            zip.file("app/game.pyxres", bytes.buffer, {binary: true});
+                            console.log("Added base64 resource as game.pyxres");
+                        } 
+                        // If it's a file path
+                        else if (resourceData.includes('/')) {
+                            try {
+                                const resourceName = resourceData.split('/').pop();
+                                const response = await fetch(resourceData);
+                                if (!response.ok) {
+                                    throw new Error(`Failed to fetch resource: ${response.status} ${response.statusText}`);
+                                }
+                                const resourceBuffer = await response.arrayBuffer();
+                                
+                                if (resourceBuffer) {
+                                    zip.file(`app/${resourceName}`, resourceBuffer, {binary: true});
+                                    console.log(`Added resource file: ${resourceName}`);
+                                    
+                                    // Make sure the code references this resource
+                                    if (code.includes('pyxel.load(')) {
+                                        // Update any existing load statement to use the correct filename
+                                        code = code.replace(/pyxel\.load\(['"].*?['"]\)/, `pyxel.load('${resourceName}')`);
+                                        zip.file("app/game.py", code);
+                                    }
+                                }
+                            } catch (e) {
+                                console.error("Error loading resource file path:", e);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error processing resource data:", e);
+                }
+            }
+            
+            // Generate the zip file blob
+            const blob = await zip.generateAsync({
+                type: "blob",
+                compression: "DEFLATE"
+            });
+            
+            // Create a download link and trigger the download
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = filename;
+            
+            // Add to document, click it, and remove it
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            // Clean up the URL object
+            setTimeout(() => {
+                URL.revokeObjectURL(downloadLink.href);
+            }, 100);
+            
+            // Show feedback to the user
+            const btn = document.getElementById('download-button');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Downloaded!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 1500);
+            
+        } catch (e) {
+            console.error("Error creating Pyxel App file:", e);
+            alert("Error creating download file. See console for details.");
+        }
+    }
+    
+    // Add event listener for the download button
+    document.getElementById('download-button').addEventListener('click', downloadPyxelApp);
+    
+    // Function to handle uploading and extracting pyxapp files
+    async function uploadPyxelApp(file) {
+        try {
+            if (!file || !file.name.endsWith('.pyxapp')) {
+                console.error("Invalid file type. Please select a .pyxapp file.");
+                return;
+            }
+            
+            // Read the file as an ArrayBuffer
+            const fileData = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+            
+            // Load the zip file
+            const zip = await JSZip.loadAsync(fileData);
+            
+            let gamePyContent = null;
+            let resourceFile = null;
+            
+            // First, try to find the startup script
+            let startupScript = null;
+            try {
+                const startupMarkerContent = await zip.file("app/.pyxapp_startup_script").async("text");
+                if (startupMarkerContent) {
+                    startupScript = startupMarkerContent.trim();
+                }
+            } catch (e) {
+                console.warn("No startup script marker found, will try to find game.py");
+            }
+            
+            // If we have a startup script, use it, otherwise default to game.py
+            const mainPyFile = startupScript || "game.py";
+            
+            // Try to find and extract the main Python file
+            try {
+                gamePyContent = await zip.file(`app/${mainPyFile}`).async("text");
+            } catch (e) {
+                console.error(`Could not find main Python file (${mainPyFile}) in the pyxapp package.`);
+                alert(`Could not find main Python file (${mainPyFile}) in the pyxapp package.`);
+                return;
+            }
+            
+            // Look for resource files
+            const resourceFiles = [];
+            zip.forEach((relativePath, zipEntry) => {
+                if (!zipEntry.dir && relativePath.startsWith("app/") && relativePath.endsWith(".pyxres")) {
+                    resourceFiles.push(relativePath);
+                }
+            });
+            
+            // If we found a resource file, extract it
+            if (resourceFiles.length > 0) {
+                try {
+                    const resourceData = await zip.file(resourceFiles[0]).async("arraybuffer");
+                    // Convert ArrayBuffer to Base64
+                    const resourceBase64 = btoa(
+                        new Uint8Array(resourceData)
+                            .reduce((data, byte) => data + String.fromCharCode(byte), '')
+                    );
+                    resourceFile = resourceBase64;
+                    
+                    // Get the resource filename
+                    const resourceFilename = resourceFiles[0].split('/').pop();
+                    
+                    // Make sure the code references this resource file
+                    if (gamePyContent.includes('pyxel.load(')) {
+                        gamePyContent = gamePyContent.replace(
+                            /pyxel\.load\(['"].*?['"]\)/, 
+                            `pyxel.load('${resourceFilename}')`
+                        );
+                    }
+                } catch (e) {
+                    console.error("Error extracting resource file:", e);
+                }
+            }
+            
+            // Update the editor with the extracted code
+            editor.setValue(gamePyContent, -1);
+            
+            // Update resource data
+            resourceData = resourceFile || "";
+            
+            // Update the game display
+            updateGame();
+            
+            // Update the document title
+            const appName = file.name.replace('.pyxapp', '');
+            document.title = `Pyxel Playground - ${appName}`;
+            
+            // Reset the save button state
+            updateSaveButtonState(false);
+            
+            // If we have resource data, update the media editor
+            if (resourceFile && mediaIframe) {
+                // Remove the old iframe
+                const mediaEditorContainer = document.getElementById('media-editor');
+                mediaEditorContainer.innerHTML = '';
+                mediaIframe = null;
+                
+                // If media tab is currently active, immediately reinitialize the media editor
+                if (document.getElementById('media-editor').classList.contains('active')) {
+                    initializeMediaEditor();
+                }
+            }
+            
+            // Show feedback to the user
+            const btn = document.getElementById('upload-button');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Loaded!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 1500);
+            
+        } catch (e) {
+            console.error("Error processing pyxapp file:", e);
+            alert("Error loading pyxapp file. See console for details.");
+        }
+    }
+    
+    // Add event listener for the upload button to trigger file selection
+    document.getElementById('upload-button').addEventListener('click', () => {
+        document.getElementById('pyxapp-file-input').click();
+    });
+    
+    // Add event listener for file input changes
+    document.getElementById('pyxapp-file-input').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            uploadPyxelApp(file);
+        }
+        // Clear the input so the same file can be selected again
+        event.target.value = '';
+    });
+
+    // Add drag and drop support for pyxapp files
+    const container = document.querySelector('.container');
+    
+    // Prevent default behavior for drag events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        container.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
+    
+    // Add visual feedback for drag events
+    ['dragenter', 'dragover'].forEach(eventName => {
+        container.addEventListener(eventName, () => {
+            container.classList.add('highlight-drop');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        container.addEventListener(eventName, () => {
+            container.classList.remove('highlight-drop');
+        }, false);
+    });
+    
+    // Handle the dropped file
+    container.addEventListener('drop', (e) => {
+        const file = e.dataTransfer.files[0];
+        if (file && file.name.endsWith('.pyxapp')) {
+            uploadPyxelApp(file);
+        } else {
+            alert('Please drop a .pyxapp file.');
+        }
+    }, false);
+    
+    // Add styles for drag and drop highlighting
+    const style = document.createElement('style');
+    style.textContent = `
+        .highlight-drop {
+            border: 3px dashed #4CAF50 !important;
+            background-color: rgba(76, 175, 80, 0.1) !important;
+        }
+    `;
+    document.head.appendChild(style);
+    
     document.addEventListener('click', (event) => {
         // Get the Pyxel canvas element (created by Pyxel)
         const pyxelCanvas = document.querySelector('#canvas');
