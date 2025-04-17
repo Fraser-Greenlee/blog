@@ -1,6 +1,8 @@
 project:
   type: website
   output-dir: docs
+  resources:
+    - "games/**"
 
 website:
   title: "Fras Green"
