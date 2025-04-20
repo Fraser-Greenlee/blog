@@ -19,6 +19,9 @@ I should also think in terms of what I would like to do in the future...
 1. See how the space changes during instruction fine-tuning.
 2. Sample from the model with data points that are close to instruct examples.
 
+The eval here is, what semantic encoding plot best represents the space of encodings.
+My suspicion is aggregating encodings from the middle layer will work best but I can wait and see.
+
 **Viz Setup Ideas**
 
 **Dolly**
@@ -45,6 +48,9 @@ Same as **Dolly** except:
 - Better performance.
 - Trained on many instruct sources, including with test sets.
 - Has scripts to make handling its pre-training data more accessible.
+
+Bad points:
+- Does not have an EOS token.
 
 **How to actually code this?**
 
