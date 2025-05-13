@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .input-section, .chart-section {
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            resize: vertical;
+        }
+
+        button {
+            display: block;
+            margin: 10px 0;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .chart-section {
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Number Tracker</h1>
+        
+        <div class="input-section">
+            <h2>Enter Data</h2>
+            <p>Format: DD/MM/YY value (e.g., 30/04/25 78.1)</p>
+            <textarea id="dataInput" rows="10" placeholder="- 30/04/25 78.1
+- 01/05/25 77.3
+- 02/05/25 77.5"></textarea>
+            <button id="plotButton">Plot Data</button>
+        </div>
+        
+        <div class="chart-section">
+            <canvas id="numberChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const dataInput = document.getElementById('dataInput');
+            const plotButton = document.getElementById('plotButton');
+            const chartCanvas = document.getElementById('numberChart');
+            
+            // Chart instance
+            let numberChart = null;
+            
+            // Load saved data if available
+            if (localStorage.getItem('numberTrackerData')) {
+                dataInput.value = localStorage.getItem('numberTrackerData');
+            }
+            
+            // Event listener for plot button
+            plotButton.addEventListener('click', function() {
+                const inputText = dataInput.value.trim();
+                
+                // Save data to local storage
+                localStorage.setItem('numberTrackerData', inputText);
+                
+                // Parse the input data
+                const dataPoints = parseDataInput(inputText);
+                
+                if (dataPoints.length > 0) {
+                    plotChart(dataPoints);
+                } else {
+                    alert('No valid data points found. Please check your input format.');
+                }
+            });
+            
+            // Parse input data in format "- DD/MM/YY value"
+            function parseDataInput(inputText) {
+                const dataPoints = [];
+                const lines = inputText.split('\n');
+                
+                for (const line of lines) {
+                    // Match the pattern: dash (optional), date (DD/MM/YY format), and number
+                    const match = line.match(/^\s*-?\s*(\d{2}\/\d{2}\/\d{2})\s+(\d*\.?\d+)\s*$/);
+                    
+                    if (match) {
+                        const dateStr = match[1];
+                        const value = parseFloat(match[2]);
+                        
+                        // Parse the date (DD/MM/YY format)
+                        const [day, month, year] = dateStr.split('/').map(num => parseInt(num, 10));
+                        // JavaScript months are 0-indexed, so subtract 1 from month
+                        // Assume 20xx for the year
+                        const date = new Date(2000 + year, month - 1, day);
+                        
+                        dataPoints.push({
+                            date,
+                            value
+                        });
+                    }
+                }
+                
+                // Sort by date
+                return dataPoints.sort((a, b) => a.date - b.date);
+            }
+            
+            // Plot the chart with the provided data points
+            function plotChart(dataPoints) {
+                // Destroy previous chart if it exists
+                if (numberChart) {
+                    numberChart.destroy();
+                }
+                
+                // Prepare data for Chart.js
+                const dates = dataPoints.map(point => point.date);
+                const values = dataPoints.map(point => point.value);
+                
+                // Calculate x-axis positions based on date differences
+                const xPositions = calculateRelativeDatePositions(dates);
+                
+                // Create chart configuration
+                const config = {
+                    type: 'line',
+                    data: {
+                        labels: dates.map(date => formatDate(date)),
+                        datasets: [{
+                            label: 'Number Values',
+                            data: values,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1,
+                            pointBackgroundColor: 'rgb(75, 192, 192)',
+                            pointRadius: 0,
+                            pointHoverRadius: 7,
+                            pointHitRadius: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                position: 'bottom',
+                                ticks: {
+                                    callback: function(value) {
+                                        const index = xPositions.indexOf(value);
+                                        return index >= 0 ? formatDate(dates[index]) : '';
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: false
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    title: function(tooltipItems) {
+                                        const index = tooltipItems[0].dataIndex;
+                                        return formatDate(dates[index]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+                
+                // Update dataset x positions to match date differences
+                config.data.datasets[0].data = dataPoints.map((point, index) => ({
+                    x: xPositions[index],
+                    y: point.value
+                }));
+                
+                // Create the chart
+                numberChart = new Chart(chartCanvas, config);
+            }
+            
+            // Calculate x-axis positions based on relative date differences
+            function calculateRelativeDatePositions(dates) {
+                if (dates.length === 0) return [];
+                
+                // Convert dates to day differences from the first date
+                const firstDate = dates[0];
+                const daysDiff = dates.map(date => {
+                    return Math.round((date - firstDate) / (1000 * 60 * 60 * 24));
+                });
+                
+                return daysDiff;
+            }
+            
+            // Format date as DD/MM/YY
+            function formatDate(date) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = String(date.getFullYear()).slice(-2);
+                return `${day}/${month}/${year}`;
+            }
+            
+            // Auto-plot if data is available
+            if (dataInput.value.trim()) {
+                plotButton.click();
+            }
+        });
+    </script>
+</body>
+</html>
