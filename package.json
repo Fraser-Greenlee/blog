@@ -1,7 +1,7 @@
 {
   "name": "blog-v2",
   "version": "1.0.0",
-  "description": "Fraser Greenlee's creative tech blog",
+  "description": "Fraser Greenlee",
   "type": "module",
   "scripts": {
     "dev": "astro dev",
