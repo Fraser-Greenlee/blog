@@ -1,2 +1,2 @@
-# blog-v2
-Completely rewriting my embarrassing blog.
+# blog
+My incredible blog.
