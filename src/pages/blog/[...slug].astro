@@ -1,0 +1,58 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import type { CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: post,
+  }));
+}
+
+type Props = CollectionEntry<'blog'>;
+
+const post = Astro.props;
+const { Content } = await post.render();
+
+const formattedDate = post.data.date.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+---
+
+<Layout title={post.data.title} description={post.data.description}>
+  <article class="max-w-2xl mx-auto px-6 py-12">
+    <a href="/" class="font-mono text-sm text-stone-600 hover:text-stone-900 mb-12 inline-block transition-colors">
+      ← Back
+    </a>
+    
+    <header class="mb-12">
+      <h1 class="text-3xl font-mono font-semibold mb-4 text-stone-900">
+        {post.data.title}
+      </h1>
+      
+      <div class="font-mono text-sm text-stone-500 mb-3">
+        <time>{formattedDate}</time>
+        {post.data.categories && (
+          <>
+            <span class="mx-2">·</span>
+            <span>{post.data.categories.join(', ')}</span>
+          </>
+        )}
+      </div>
+      
+      <p class="text-stone-600 text-lg leading-relaxed">{post.data.description}</p>
+    </header>
+    
+    <div class="prose prose-stone max-w-none
+                prose-headings:font-mono prose-headings:font-medium
+                prose-a:text-stone-700 prose-a:underline prose-a:underline-offset-4 prose-a:decoration-stone-400 hover:prose-a:text-stone-900 hover:prose-a:decoration-stone-600
+                prose-img:rounded-lg
+                prose-p:leading-relaxed">
+      <Content />
+    </div>
+  </article>
+</Layout>

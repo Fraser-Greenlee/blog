@@ -1,0 +1,22 @@
+---
+const links = [
+  { name: 'CV', href: '/cv.pdf' },
+  { name: 'GitHub', href: 'https://github.com/Fraser-Greenlee' },
+  { name: 'LinkedIn', href: 'https://www.linkedin.com/in/fraser-greenlee-9658a7101/' },
+];
+---
+
+<section class="max-w-2xl mx-auto px-6 py-3">
+  <div class="flex flex-wrap gap-x-6 gap-y-2 text-base font-mono">
+    {links.map((link) => (
+      <a
+        href={link.href}
+        target={link.href.startsWith('http') ? '_blank' : '_self'}
+        rel={link.href.startsWith('http') ? 'noopener noreferrer' : ''}
+        class="text-stone-600 hover:text-stone-900 transition-colors underline underline-offset-4 decoration-stone-300 hover:decoration-stone-500"
+      >
+        {link.name}
+      </a>
+    ))}
+  </div>
+</section>

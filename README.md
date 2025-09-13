@@ -1,6 +1,2 @@
-# My Blog
-
-Render with:
-```bash
-quarto render
-```
+# blog-v2
+Completely rewriting my embarrassing blog.

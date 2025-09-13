@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-stone-50;
+    @apply min-h-screen;
+    @apply text-stone-700;
+    @apply font-sans;
+    line-height: 1.6;
+  }
+
+  ::selection {
+    @apply bg-amber-200 text-stone-900;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-mono font-medium text-stone-900;
+  }
+  
+  code {
+    @apply font-mono text-sm;
+  }
+}
+
+@layer components {
+  .link-underline {
+    @apply underline decoration-stone-400 underline-offset-4 hover:decoration-stone-700 transition-colors;
+  }
+  
+  .subtle-link {
+    @apply text-stone-700 hover:text-stone-900 transition-colors underline-offset-4;
+    text-decoration-thickness: 1px;
+  }
+  
+  /* Override prose code block styles */
+  .prose pre {
+    @apply bg-gray-100/60 text-gray-800 border border-gray-200/60 p-4 rounded-md;
+  }
+  
+  .prose pre code {
+    @apply bg-transparent text-gray-800 p-0;
+  }
+  
+  .prose code {
+    @apply bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-sm font-mono;
+  }
+  
+  .prose code::before,
+  .prose code::after {
+    content: none;
+  }
+  
+  /* Fix plain text in Astro/Shiki code blocks to be light colored */
+  .astro-code span:not([style]) {
+    @apply text-gray-300 !important;
+  }
+  
+  .astro-code .line:not([class*="highlighted"]) span:not([style]) {
+    @apply text-gray-300 !important;
+  }
+}

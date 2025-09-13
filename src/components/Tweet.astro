@@ -1,0 +1,25 @@
+---
+export interface Props {
+  id: string;
+  user?: string;
+}
+
+const { id, user = 'FraserGreenlee' } = Astro.props;
+const tweetUrl = `https://twitter.com/${user}/status/${id}`;
+---
+
+<div class="tweet-embed my-8">
+  <blockquote class="twitter-tweet">
+    <a href={tweetUrl}>View on Twitter</a>
+  </blockquote>
+</div>
+
+<script>
+  // Load Twitter widgets script if not already loaded
+  if (!window.twttr) {
+    const script = document.createElement('script');
+    script.src = 'https://platform.twitter.com/widgets.js';
+    script.async = true;
+    document.head.appendChild(script);
+  }
+</script>

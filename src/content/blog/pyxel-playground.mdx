@@ -1,0 +1,169 @@
+---
+title: "Pyxel Playground: A Web-Based Game Editor"
+description: "A browser-based editor for making retro games with Pyxel, a Python retro game engine."
+date: 2025-04-17
+categories: ["games", "tools", "python"]
+---
+
+I've created a browser-based editor for making retro games with [Pyxel](https://github.com/kitao/pyxel), a Python retro game engine. It lets you code and play simple games right in your browser.
+
+<video controls autoplay loop muted class="w-full rounded-lg shadow-lg my-6">
+  <source src="/media/pyxel-playground.mov" type="video/quicktime" />
+  Your browser does not support the video tag.
+</video>
+
+## Try It Yourself
+
+<div class="text-center my-8">
+  <a href="/games/playground.html" target="_blank" class="inline-block px-6 py-3 bg-stone-800 text-white font-mono rounded-lg hover:bg-stone-700 transition-colors" style="color: white;">
+    🎮 Launch Pyxel Playground
+  </a>
+</div>
+
+## How It Works
+
+The Pyxel Playground runs entirely in your browser without any server-side execution. The architecture consists of three main components working together through sessionStorage and iframe communication.
+
+![Pyxel Playground Architecture](/pyxel-diagram.png)
+
+### Key Components
+
+**1. Main Interface (`playground.html`)**
+- Houses the Ace code editor for writing Python
+- Manages the game preview iframe
+- Handles file operations and examples
+- Coordinates between code editor and resource editor
+
+**2. Game Runtime (`player.html`)**
+- Runs in an isolated iframe for security
+- Loads Pyxel WASM directly from CDN
+- Executes Python code using Pyxel's built-in interpreter
+- No Pyodide needed - uses Pyxel's own WASM build
+
+**3. Resource Editor (`media.html`)**
+- Edit sprites, tilemaps, sounds, and music
+- Uses Pyxel's built-in resource editor
+- Saves as binary `.pyxres` files
+
+### Technical Implementation
+
+#### Pyxel WASM Integration
+
+The playground uses Pyxel's official WebAssembly build, which includes a Python interpreter:
+
+```javascript
+// Load Pyxel WASM from CDN
+<script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
+
+// Python code is packaged with resources into a pyxapp
+async function createPyxapp(pythonCode, resourceData) {
+    const zip = new JSZip();
+    
+    // Add Python code
+    zip.file("main.py", pythonCode);
+    
+    // Add resource file if present
+    if (resourceData) {
+        zip.file("resource.pyxres", resourceData);
+    }
+    
+    // Generate the pyxapp package
+    return await zip.generateAsync({type: "arraybuffer"});
+}
+```
+
+#### Communication Between Components
+
+The playground uses `sessionStorage` for passing data between iframes:
+
+```javascript
+// In playground.html - Save code and resources
+function updateGame() {
+    sessionStorage.setItem('pyxelCode', editor.getValue());
+    sessionStorage.setItem('pyxelResource', resourceData);
+    
+    // Reload the game iframe
+    gameIframe.src = 'player.html?useSessionStorage=true';
+}
+
+// In player.html - Load and run the game
+const code = sessionStorage.getItem('pyxelCode');
+const resource = sessionStorage.getItem('pyxelResource');
+
+// Create and launch the pyxapp
+const pyxapp = await createPyxapp(code, resource);
+pyxel(pyxapp);
+```
+
+#### File Structure for Games
+
+Each game consists of two files:
+
+```
+games/
+└── snake/
+    ├── game.py      # Python game code
+    └── game.pyxres  # Binary resource file (sprites, sounds, etc.)
+```
+
+The `.pyxres` files are binary format containing:
+- Image banks (256x256 pixels each)
+- Tilemap data
+- Sound effects (up to 64)
+- Music tracks (up to 8)
+
+### Pyxel API Usage
+
+Games use Pyxel's simple but powerful API:
+
+```python
+import pyxel
+
+class Game:
+    def __init__(self):
+        pyxel.init(160, 120)  # Initialize with screen size
+        pyxel.load("resource.pyxres")  # Load resources
+        self.x = 80
+        self.y = 60
+        pyxel.run(self.update, self.draw)  # Start game loop
+    
+    def update(self):
+        # Handle input
+        if pyxel.btn(pyxel.KEY_LEFT):
+            self.x -= 2
+        if pyxel.btn(pyxel.KEY_RIGHT):
+            self.x += 2
+    
+    def draw(self):
+        pyxel.cls(0)  # Clear screen with color 0
+        pyxel.spr(0, self.x, self.y, 16, 16)  # Draw sprite
+
+Game()
+```
+
+### Python Code Execution
+
+The magic happens through Pyxel's WASM build which includes:
+
+1. **Embedded Python Interpreter**: A minimal Python runtime compiled to WebAssembly
+2. **Pyxel Module**: The game engine API exposed to Python
+3. **Resource Loading**: Direct access to binary resource data
+4. **Canvas Rendering**: WebGL-accelerated pixel rendering
+
+The Python code runs at near-native speed thanks to WebAssembly, making it suitable for real-time games.
+
+### Features
+
+- **No Installation Required**: Everything runs in the browser
+- **Instant Feedback**: Code changes apply immediately
+- **Example Games**: 11 built-in games to learn from
+- **Resource Editing**: Integrated sprite and sound editor
+- **Export/Import**: Share games as single files
+- **Resizable Panels**: Customize your workspace
+
+### Limitations
+
+- **Python Subset**: Not all Python standard library is available
+- **Performance**: Limited to simpler 2D games
+- **File Size**: Games with many resources can be slow to load
+- **Browser Storage**: Limited by sessionStorage quotas

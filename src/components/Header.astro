@@ -1,0 +1,22 @@
+---
+export interface Props {
+  imageUrl?: string;
+}
+
+const { imageUrl = '/poster.jpg' } = Astro.props;
+---
+
+<header class="mb-6">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="w-full max-h-96 overflow-hidden rounded-lg mb-6 flex items-center justify-center">
+      <img 
+        src={imageUrl} 
+        alt="Header illustration" 
+        class="w-full h-auto max-h-96 object-contain"
+      />
+    </div>
+    <div class="max-w-2xl mx-auto">
+      <h1 class="text-4xl font-mono font-semibold mb-2">Fraser Greenlee</h1>
+    </div>
+  </div>
+</header>

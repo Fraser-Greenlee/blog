@@ -1,0 +1,44 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import About from '../components/About.astro';
+import Links from '../components/Links.astro';
+import BlogCard from '../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog'))
+  .filter(post => !post.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<Layout title="Fraser Greenlee">
+  <Header />
+  
+  <main>
+    <About />
+    
+    <Links />
+    
+    <!-- Blog Posts Section -->
+    <section class="max-w-2xl mx-auto px-6 py-6">
+      <h2 class="text-xl font-mono font-medium mb-4 text-stone-900">Posts</h2>
+      
+      <div class="divide-y divide-stone-200">
+        {posts.map((post) => (
+          <BlogCard
+            title={post.data.title}
+            description={post.data.description}
+            date={post.data.date.toISOString()}
+            slug={post.slug}
+            image={post.data.image}
+            categories={post.data.categories}
+          />
+        ))}
+      </div>
+      
+      {posts.length === 0 && (
+        <p class="text-stone-600 font-mono text-sm">Nothing here yet.</p>
+      )}
+    </section>
+  </main>
+</Layout>

@@ -1,0 +1,74 @@
+---
+interface TimelineItem {
+  date: string;
+  title: string;
+  company: string;
+  description?: string;
+}
+
+const experiences: TimelineItem[] = [
+  {
+    date: "2024 - Present",
+    title: "ML Principal",
+    company: "Salesforce",
+    description: "Leading ML initiatives and strategy"
+  },
+  {
+    date: "2023 - 2024",
+    title: "Founding ML Engineer",
+    company: "Convergence",
+    description: "Built ML infrastructure from the ground up"
+  },
+  {
+    date: "2022 - 2023",
+    title: "ML Engineer",
+    company: "Cohere",
+    description: "Worked on large language models and NLP systems"
+  }
+];
+---
+
+<section class="py-16 px-4 max-w-6xl mx-auto">
+  <h2 class="text-4xl font-display font-bold mb-12 text-center">
+    <span class="gradient-text">About Me</span>
+  </h2>
+  
+  <div class="relative">
+    <!-- Timeline line -->
+    <div class="timeline-line hidden md:block"></div>
+    
+    <!-- Timeline items -->
+    <div class="space-y-8 md:space-y-12">
+      {experiences.map((item, index) => (
+        <div class={`flex items-center ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} flex-col md:gap-8`}>
+          <!-- Content -->
+          <div class={`flex-1 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'} text-center`}>
+            <div class="bg-white/80 backdrop-blur p-6 rounded-2xl shadow-lg hover-tilt inline-block max-w-md">
+              <span class="text-sm text-electric-purple font-semibold">{item.date}</span>
+              <h3 class="text-2xl font-bold mt-1 mb-2">{item.title}</h3>
+              <p class="text-hot-pink font-semibold">{item.company}</p>
+              {item.description && (
+                <p class="text-gray-600 mt-2">{item.description}</p>
+              )}
+            </div>
+          </div>
+          
+          <!-- Timeline dot -->
+          <div class="timeline-dot"></div>
+          
+          <!-- Spacer -->
+          <div class="flex-1 hidden md:block"></div>
+        </div>
+      ))}
+    </div>
+  </div>
+  
+  <!-- Bio paragraph -->
+  <div class="mt-16 text-center max-w-3xl mx-auto">
+    <p class="text-lg leading-relaxed text-gray-700">
+      I'm passionate about building intelligent systems that push the boundaries of what's possible. 
+      From large language models to creative coding experiments, I love exploring the intersection 
+      of machine learning and human creativity.
+    </p>
+  </div>
+</section>
