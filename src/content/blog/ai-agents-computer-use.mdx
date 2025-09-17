@@ -1,0 +1,80 @@
+---
+title: "How will Ai Agents use computers?"
+description: "Why I think Coding Agents NOT Computer Use Agents (CUA) are the future."
+date: 2025-09-17
+categories: ["AI", "agents", "computer-use"]
+---
+
+AGI will be a computer using agent, the computer is highest leverage tool known to man, so **HOW** AI agents will use computers is the question of our time.
+
+In academia the term "computer use agents" (CUA) refers to an agent that clicks and types on a computer screen just like a human would.
+This works by sending  screenshots to a VLM and having it decide on the next keyboard or mouse action to complete the task.
+
+<video width="720" height="480" controls>
+  <source src="/media/open_cua_720.mov" type="video/mp4" />
+  Your browser does not support the video tag.
+</video>
+
+from the amazing [https://opencua.xlang.ai](https://opencua.xlang.ai/)
+
+Unlike coding agents and chat models CUAs aren't reaching super human levels of performance and even when they reach human level they're slow and expensive.
+
+Meanwhile there's another kind of agent that runs on a computer a "coding agent".
+Coding agents like Claude Code skip the virtual keyboard and mouse and instead just work through the terminal.
+
+![Claude Code in action](/media/67cb064b14f4465a0ce0aa9c_Claude3.7Code.gif)
+
+Initially this seems like a step backwards from CUAs, by just using the terminal we're losing the graphic user interface surely that leaves you worse off?
+
+Lets go back to why we got the graphic user interfaces in the first place.
+
+### Why have a GUI in the first place?
+
+In the 1960s GUIs were developed to allow non-specialists to work on documents with the hope of creating the paperless offices we work in today. You'll notice that to this day "desktops" and "folders" are all computer metaphors for the sheets of paper common in 20th century offices.
+
+Specifically GUIs implemented:
+
+- Displaying affordances in a simple and easy to understand format.
+- Pointing at visible objects instead of memorising commands.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/QQhVQ1UG6aM" title="Original GUIs demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+Original GUIs were supposed to be even more like writing and editing paper documents! Turns out [nobody wants a stylus](https://www.youtube.com/watch?v=NwKOHrw9n2c).
+
+Now lets think about what VLMs actually get from using GUIs:
+
+- affordances avoid memorising commands ❌
+
+    VLMs can store a far wider breadth of knowledge on all applications than a person can, they don't need clues on how to change the left margin side in Word.
+
+    Even when they lack in inherit knowledge they are much more efficient at taking in text-based application info rather than viewing a small subset of features on a screen.
+
+- pointing and clicking is easier than typing ❌
+
+    For VLMs them clicking is just writing out `click(13,594)`
+    And after each click the VLM needs to view a new screenshot.
+    Instead of typing `System > Network Preferences > Toggle Mobile Data`
+    You get `click` (screenshot) `click` (screenshot) `click`
+
+    - Can't you just chain together multiple clicks at once?
+
+        Yes no doubt but then your getting in to dangerous territory, what if there's a pop-up or alert, how will you decide to cut the actions short?
+        Will your agent just have to memorise these shortcuts? What about when the underlying GUI changes and they start breaking?
+
+        There is room for using keyboard shortcuts which are just more obtuse versions of calling the equivalent code while staying in the GUI.
+
+
+So none of the original justifications for the Graphic User Interface hold up for use with modern VLMs.
+The only justification for them right now is when using legacy (pre AI) applications and pretending to be a human user.
+
+Another important feature not yet mentioned, because coding agents are really effective we should also expect the breadth of capabilities available via MCPs and CLI tools to get greater quicker than expect as software is generated more cheaply.
+
+### So what will happen?
+
+I think we'll find that +90% of computer agents tasks will be done via the terminal and MCP servers. Sure GUI computer use will be present when needed but will not be here to stay long term.
+
+### A contrast to robotics.
+
+In robotics there's a historic argument over if they should be humanoid or not. A humanoid robot can use all our existing interfaces while sophisticated robots can be way better at their specific tasks. In robotics there's an open question here because it costs a fair bit to build a unique robot for each tasks. In computer-use there's an analogues point of should we make a human-like computer using agent or provide agent-specific tools for the task and use those instead. Unlike in robotics because the cost of producing software is trending towards zero I think it will make a lot more sense to generate agent-spefic tools than rely on "humanoid" computer using agents.
+
+![Robotics analogy](/media/image.png)
