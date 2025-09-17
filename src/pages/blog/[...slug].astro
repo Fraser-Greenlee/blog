@@ -46,7 +46,17 @@ const formattedDate = post.data.date.toLocaleDateString('en-US', {
       
       <p class="text-stone-600 text-lg leading-relaxed">{post.data.description}</p>
     </header>
-    
+
+    {post.data.heroImage && (
+      <div class="mb-12">
+        <img
+          src={post.data.heroImage}
+          alt={post.data.title}
+          class="w-full rounded-lg shadow-lg"
+        />
+      </div>
+    )}
+
     <div class="prose prose-stone max-w-none
                 prose-headings:font-mono prose-headings:font-medium
                 prose-a:text-stone-700 prose-a:underline prose-a:underline-offset-4 prose-a:decoration-stone-400 hover:prose-a:text-stone-900 hover:prose-a:decoration-stone-600
