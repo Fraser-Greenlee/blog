@@ -6,24 +6,28 @@ categories: ["AI", "agents", "computer-use"]
 heroImage: "/media/image.png"
 ---
 
-AGI will be a computer using agent, the computer is the highest-leverage tool known to man, so **HOW** AI agents will use computers is the question of our time.
+The first AGI will be a computer using agent, the computer is the highest-leverage tool known to man, so **how** AI agents will use computers is the question of our time.
 
 In academia the term "computer use agents" (CUA) refers to an agent that clicks and types on a computer screen just like a human would.
 CUAs work by sending screenshots to a VLM and having it decide on the next keyboard or mouse action to complete the task.
 
-<video width="720" height="480" controls>
-  <source src="/media/open_cua_720.mov" type="video/mp4" />
-  Your browser does not support the video tag.
-</video>
+<figure>
+  <video width="720" height="480" controls>
+    <source src="/media/open_cua_720.mov" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+  <figcaption>from the amazing <a href="https://opencua.xlang.ai/">OpenCUA</a></figcaption>
+</figure>
 
-from the amazing [OpenCUA](https://opencua.xlang.ai/)
+Unlike coding agents and chat models, CUAs aren't reaching superhuman levels of performance and even when they reach human level they're slow and expensive.
 
-Unlike coding agents and chat models CUAs aren't reaching super human levels of performance and even when they reach human level they're slow and expensive.
-
-Meanwhile there's another kind of agent that runs on a computer a "coding agent".
+So what's the alternative? There's another kind of agent that runs on a computer a "coding agent".
 Coding agents like Claude Code skip the virtual keyboard and mouse and instead just work through the terminal.
 
-![Claude Code in action](/media/67cb064b14f4465a0ce0aa9c_Claude3.7Code.gif)
+<figure>
+  <img src="/media/67cb064b14f4465a0ce0aa9c_Claude3.7Code.gif" alt="Claude Code in action" />
+  <figcaption>Claude Code in action</figcaption>
+</figure>
 
 Initially this seems like a step backwards from CUAs, by just using the terminal we're losing the graphic user interface surely that leaves you worse off?
 
@@ -38,32 +42,30 @@ Specifically GUIs implemented:
 - Displaying affordances in a simple and easy to understand format.
 - Pointing at visible objects instead of memorising commands.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/QQhVQ1UG6aM" title="Original GUIs demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<figure>
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/QQhVQ1UG6aM" title="Original GUIs demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  <figcaption>Original GUIs were supposed to be even more like writing and editing paper documents! Turns out <a href="https://www.youtube.com/watch?v=NwKOHrw9n2c">nobody wants a stylus</a>.</figcaption>
+</figure>
 
-Original GUIs were supposed to be even more like writing and editing paper documents! Turns out [nobody wants a stylus](https://www.youtube.com/watch?v=NwKOHrw9n2c).
+Now let's think about what VLMs actually get from using GUIs:
 
-Now lets think about what VLMs actually get from using GUIs:
+**Affordances avoid memorising commands** ❌
 
-- affordances avoid memorising commands ❌
+VLMs can store a far wider breadth of knowledge on all applications than a person can - they don't need visual clues on how to change the left margin in Word. Even when they lack inherent knowledge, they're much more efficient at processing text-based application info rather than viewing a small subset of features on a screen.
 
-    VLMs can store a far wider breadth of knowledge on all applications than a person can, they don't need clues on how to change the left margin side in Word.
+**Pointing and clicking is easier than typing** ❌
 
-    Even when they lack in inherit knowledge they are much more efficient at taking in text-based application info rather than viewing a small subset of features on a screen.
+For VLMs, clicking is just writing out `click(13,594)` and after each click the VLM needs to view a new screenshot.
 
-- pointing and clicking is easier than typing ❌
+Instead of coding:
 
-    For VLMs them clicking is just writing out `click(13,594)`
-    And after each click the VLM needs to view a new screenshot.
-    Instead of typing `System > Network Preferences > Toggle Mobile Data`
-    You get `click` (screenshot) `click` (screenshot) `click`
+`System.NetworkPreferences.MobileData.toggle()`
 
-    - Can't you just chain together multiple clicks at once?
+The agent must take several seperate actions:
 
-        Yes no doubt but then your getting in to dangerous territory, what if there's a pop-up or alert, how will you decide to cut the actions short?
-        Will your agent just have to memorise these shortcuts? What about when the underlying GUI changes and they start breaking?
+`click(System)`, `click(Network Preferences)`, `click(Toggle Mobile Data)`
 
-        There is room for using keyboard shortcuts which are just more obtuse versions of calling the equivalent code while staying in the GUI.
-
+Can't you just chain together multiple clicks at once? Yes, but what if a pop-up or alert changes the layout? How will you decide to cut the actions short? Also your agent would have to memorise the positions of each element, and what happens when the underlying GUI changes?
 
 So none of the original justifications for the Graphic User Interface hold up for use with modern VLMs.
 The only justification for them right now is when using legacy (pre AI) applications and pretending to be a human user.
@@ -78,4 +80,7 @@ I think we'll find that over 90% of computer agent tasks will be done via the te
 
 In robotics there's a historic argument over if they should be humanoid or not. A humanoid robot can use all our existing interfaces while sophisticated robots can be way better at their specific tasks. In robotics there's an open question here because it costs a fair bit to build a unique robot for each tasks. In computer-use there's an analogous question of should we make a human-like computer using agent or provide agent-specific tools for the task and use those instead. Unlike in robotics because the cost of producing software is trending towards zero I think it will make a lot more sense to generate agent-specific tools than rely on "humanoid" computer using agents.
 
-![Robotics analogy](/media/image.png)
+<figure>
+  <img src="/media/image.png" alt="Robotics analogy" />
+  <figcaption>Humanoid vs specialized robots - an analogy for AI agents</figcaption>
+</figure>
