@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Per-Layer Diagnostics</title>
+<style>
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: transparent;
+    color: #333;
+    line-height: 1.5;
+  }
+  .figure-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 4px;
+    color: #222;
+  }
+  .subtitle {
+    font-size: 13px;
+    text-align: center;
+    color: #888;
+    margin-bottom: 24px;
+  }
+  .panels {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .panel {
+    flex: 1;
+    min-width: 250px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .footnote {
+    font-size: 10px;
+    color: #ccc;
+    text-align: center;
+    margin-top: 24px;
+  }
+  @media (max-width: 720px) {
+    .panels { flex-direction: column; align-items: center; }
+  }
+
+
+  .diag-panels {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .diag-panels .panel {
+    flex: 0 1 310px;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="figure-container">
+  <h2>Per-layer attention diagnostics</h2>
+  <div class="subtitle">
+    Two measures of attention similarity bias across 12 transformer layers.
+  </div>
+  <div class="diag-panels">
+    <div class="panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 230" width="300" height="230" style="overflow:visible">
+<text x="150.0" y="14" text-anchor="middle" font-size="12" font-weight="600" fill="#333">Self-value projection in output</text>
+<line x1="52" y1="194.0" x2="286" y2="194.0" stroke="#eee" stroke-width="1"/>
+<text x="46" y="197.0" text-anchor="end" font-size="9" fill="#999">0.224</text>
+<line x1="52" y1="161.2" x2="286" y2="161.2" stroke="#eee" stroke-width="1"/>
+<text x="46" y="164.2" text-anchor="end" font-size="9" fill="#999">0.305</text>
+<line x1="52" y1="128.4" x2="286" y2="128.4" stroke="#eee" stroke-width="1"/>
+<text x="46" y="131.4" text-anchor="end" font-size="9" fill="#999">0.386</text>
+<line x1="52" y1="95.6" x2="286" y2="95.6" stroke="#eee" stroke-width="1"/>
+<text x="46" y="98.6" text-anchor="end" font-size="9" fill="#999">0.467</text>
+<line x1="52" y1="62.8" x2="286" y2="62.8" stroke="#eee" stroke-width="1"/>
+<text x="46" y="65.8" text-anchor="end" font-size="9" fill="#999">0.549</text>
+<line x1="52" y1="30.0" x2="286" y2="30.0" stroke="#eee" stroke-width="1"/>
+<text x="46" y="33.0" text-anchor="end" font-size="9" fill="#999">0.630</text>
+<text x="52.0" y="208.0" text-anchor="middle" font-size="9" fill="#999">0</text>
+<text x="73.3" y="208.0" text-anchor="middle" font-size="9" fill="#999">1</text>
+<text x="94.5" y="208.0" text-anchor="middle" font-size="9" fill="#999">2</text>
+<text x="115.8" y="208.0" text-anchor="middle" font-size="9" fill="#999">3</text>
+<text x="137.1" y="208.0" text-anchor="middle" font-size="9" fill="#999">4</text>
+<text x="158.4" y="208.0" text-anchor="middle" font-size="9" fill="#999">5</text>
+<text x="179.6" y="208.0" text-anchor="middle" font-size="9" fill="#999">6</text>
+<text x="200.9" y="208.0" text-anchor="middle" font-size="9" fill="#999">7</text>
+<text x="222.2" y="208.0" text-anchor="middle" font-size="9" fill="#999">8</text>
+<text x="243.5" y="208.0" text-anchor="middle" font-size="9" fill="#999">9</text>
+<text x="264.7" y="208.0" text-anchor="middle" font-size="9" fill="#999">10</text>
+<text x="286.0" y="208.0" text-anchor="middle" font-size="9" fill="#999">11</text>
+<text x="169.0" y="228" text-anchor="middle" font-size="10" fill="#666">Layer</text>
+<text x="12" y="112.0" text-anchor="middle" font-size="10" fill="#666" transform="rotate(-90,12,112.0)">cos(Y, V_self)</text>
+<line x1="52" y1="30" x2="52" y2="194" stroke="#ccc" stroke-width="1"/>
+<line x1="52" y1="194" x2="286" y2="194" stroke="#ccc" stroke-width="1"/>
+<path d="M52.0,67.5 L73.3,106.5 L94.5,111.8 L115.8,107.7 L137.1,110.1 L158.4,122.9 L179.6,105.4 L200.9,128.3 L222.2,144.4 L243.5,155.8 L264.7,146.2 L286.0,162.5" fill="none" stroke="#4477AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="52.0" cy="67.5" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="73.3" cy="106.5" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="94.5" cy="111.8" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="115.8" cy="107.7" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="137.1" cy="110.1" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="158.4" cy="122.9" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="179.6" cy="105.4" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="200.9" cy="128.3" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="222.2" cy="144.4" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="243.5" cy="155.8" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="264.7" cy="146.2" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="286.0" cy="162.5" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<path d="M52.0,75.0 L73.3,71.9 L94.5,91.9 L115.8,119.2 L137.1,99.2 L158.4,83.7 L179.6,128.6 L200.9,118.6 L222.2,123.9 L243.5,136.9 L264.7,175.4 L286.0,180.3" fill="none" stroke="#66CCEE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="52.0" cy="75.0" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="73.3" cy="71.9" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="94.5" cy="91.9" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="115.8" cy="119.2" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="137.1" cy="99.2" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="158.4" cy="83.7" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="179.6" cy="128.6" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="200.9" cy="118.6" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="222.2" cy="123.9" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="243.5" cy="136.9" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="264.7" cy="175.4" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="286.0" cy="180.3" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<path d="M52.0,58.1 L73.3,91.6 L94.5,74.2 L115.8,75.3 L137.1,49.4 L158.4,55.7 L179.6,43.7 L200.9,53.8 L222.2,59.9 L243.5,78.5 L264.7,89.9 L286.0,99.2" fill="none" stroke="#228833" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="52.0" cy="58.1" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="73.3" cy="91.6" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="94.5" cy="74.2" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="115.8" cy="75.3" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="137.1" cy="49.4" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="158.4" cy="55.7" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="179.6" cy="43.7" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="200.9" cy="53.8" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="222.2" cy="59.9" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="243.5" cy="78.5" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="264.7" cy="89.9" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="286.0" cy="99.2" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<line x1="60" y1="38" x2="76" y2="38" stroke="#4477AA" stroke-width="2"/>
+<text x="80" y="41" font-size="9" fill="#555">B/32</text>
+<line x1="60" y1="52" x2="76" y2="52" stroke="#66CCEE" stroke-width="2"/>
+<text x="80" y="55" font-size="9" fill="#555">B/16</text>
+<line x1="60" y1="66" x2="76" y2="66" stroke="#228833" stroke-width="2"/>
+<text x="80" y="69" font-size="9" fill="#555">B/14</text>
+</svg></div><div class="panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 230" width="300" height="230" style="overflow:visible">
+<text x="150.0" y="14" text-anchor="middle" font-size="12" font-weight="600" fill="#333">Inter-token value similarity</text>
+<line x1="52" y1="194.0" x2="286" y2="194.0" stroke="#eee" stroke-width="1"/>
+<text x="46" y="197.0" text-anchor="end" font-size="9" fill="#999">-0.006</text>
+<line x1="52" y1="161.2" x2="286" y2="161.2" stroke="#eee" stroke-width="1"/>
+<text x="46" y="164.2" text-anchor="end" font-size="9" fill="#999">0.088</text>
+<line x1="52" y1="128.4" x2="286" y2="128.4" stroke="#eee" stroke-width="1"/>
+<text x="46" y="131.4" text-anchor="end" font-size="9" fill="#999">0.182</text>
+<line x1="52" y1="95.6" x2="286" y2="95.6" stroke="#eee" stroke-width="1"/>
+<text x="46" y="98.6" text-anchor="end" font-size="9" fill="#999">0.275</text>
+<line x1="52" y1="62.8" x2="286" y2="62.8" stroke="#eee" stroke-width="1"/>
+<text x="46" y="65.8" text-anchor="end" font-size="9" fill="#999">0.369</text>
+<line x1="52" y1="30.0" x2="286" y2="30.0" stroke="#eee" stroke-width="1"/>
+<text x="46" y="33.0" text-anchor="end" font-size="9" fill="#999">0.463</text>
+<text x="52.0" y="208.0" text-anchor="middle" font-size="9" fill="#999">0</text>
+<text x="73.3" y="208.0" text-anchor="middle" font-size="9" fill="#999">1</text>
+<text x="94.5" y="208.0" text-anchor="middle" font-size="9" fill="#999">2</text>
+<text x="115.8" y="208.0" text-anchor="middle" font-size="9" fill="#999">3</text>
+<text x="137.1" y="208.0" text-anchor="middle" font-size="9" fill="#999">4</text>
+<text x="158.4" y="208.0" text-anchor="middle" font-size="9" fill="#999">5</text>
+<text x="179.6" y="208.0" text-anchor="middle" font-size="9" fill="#999">6</text>
+<text x="200.9" y="208.0" text-anchor="middle" font-size="9" fill="#999">7</text>
+<text x="222.2" y="208.0" text-anchor="middle" font-size="9" fill="#999">8</text>
+<text x="243.5" y="208.0" text-anchor="middle" font-size="9" fill="#999">9</text>
+<text x="264.7" y="208.0" text-anchor="middle" font-size="9" fill="#999">10</text>
+<text x="286.0" y="208.0" text-anchor="middle" font-size="9" fill="#999">11</text>
+<text x="169.0" y="228" text-anchor="middle" font-size="10" fill="#666">Layer</text>
+<text x="12" y="112.0" text-anchor="middle" font-size="10" fill="#666" transform="rotate(-90,12,112.0)">cos(V_i, V_j)</text>
+<line x1="52" y1="30" x2="52" y2="194" stroke="#ccc" stroke-width="1"/>
+<line x1="52" y1="194" x2="286" y2="194" stroke="#ccc" stroke-width="1"/>
+<path d="M52.0,135.2 L73.3,169.9 L94.5,174.0 L115.8,178.6 L137.1,180.3 L158.4,179.0 L179.6,178.1 L200.9,176.4 L222.2,174.3 L243.5,175.6 L264.7,174.9 L286.0,174.3" fill="none" stroke="#4477AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="52.0" cy="135.2" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="73.3" cy="169.9" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="94.5" cy="174.0" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="115.8" cy="178.6" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="137.1" cy="180.3" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="158.4" cy="179.0" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="179.6" cy="178.1" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="200.9" cy="176.4" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="222.2" cy="174.3" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="243.5" cy="175.6" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="264.7" cy="174.9" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<circle cx="286.0" cy="174.3" r="3" fill="#4477AA" stroke="#fff" stroke-width="1"/>
+<path d="M52.0,138.6 L73.3,163.0 L94.5,170.9 L115.8,174.2 L137.1,177.4 L158.4,174.3 L179.6,171.8 L200.9,171.2 L222.2,170.3 L243.5,169.1 L264.7,168.1 L286.0,165.2" fill="none" stroke="#66CCEE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="52.0" cy="138.6" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="73.3" cy="163.0" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="94.5" cy="170.9" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="115.8" cy="174.2" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="137.1" cy="177.4" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="158.4" cy="174.3" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="179.6" cy="171.8" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="200.9" cy="171.2" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="222.2" cy="170.3" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="243.5" cy="169.1" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="264.7" cy="168.1" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<circle cx="286.0" cy="165.2" r="3" fill="#66CCEE" stroke="#fff" stroke-width="1"/>
+<path d="M52.0,131.8 L73.3,130.5 L94.5,134.8 L115.8,142.5 L137.1,143.3 L158.4,139.8 L179.6,126.8 L200.9,112.8 L222.2,98.3 L243.5,86.2 L264.7,70.8 L286.0,43.7" fill="none" stroke="#228833" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="52.0" cy="131.8" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="73.3" cy="130.5" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="94.5" cy="134.8" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="115.8" cy="142.5" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="137.1" cy="143.3" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="158.4" cy="139.8" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="179.6" cy="126.8" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="200.9" cy="112.8" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="222.2" cy="98.3" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="243.5" cy="86.2" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="264.7" cy="70.8" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<circle cx="286.0" cy="43.7" r="3" fill="#228833" stroke="#fff" stroke-width="1"/>
+<line x1="60" y1="38" x2="76" y2="38" stroke="#4477AA" stroke-width="2"/>
+<text x="80" y="41" font-size="9" fill="#555">B/32</text>
+<line x1="60" y1="52" x2="76" y2="52" stroke="#66CCEE" stroke-width="2"/>
+<text x="80" y="55" font-size="9" fill="#555">B/16</text>
+<line x1="60" y1="66" x2="76" y2="66" stroke="#228833" stroke-width="2"/>
+<text x="80" y="69" font-size="9" fill="#555">B/14</text>
+</svg></div>
+  </div>
+  <div class="footnote">
+    Averaged over 8 ImageNet validation images per model.
+    All models are baselines (no XSA) evaluated at their training checkpoints.
+  </div>
+</div>
+<script>new ResizeObserver(()=>{window.parent.postMessage({iframeHeight:document.body.scrollHeight,src:location.pathname},"*")}).observe(document.body);window.addEventListener("load",()=>{window.parent.postMessage({iframeHeight:document.body.scrollHeight,src:location.pathname},"*")})</script>
+</body>
+</html>

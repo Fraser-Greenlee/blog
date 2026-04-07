@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Full Results Table</title>
+<style>
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: transparent;
+    color: #333;
+    line-height: 1.5;
+  }
+  .figure-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 4px;
+    color: #222;
+  }
+  .subtitle {
+    font-size: 13px;
+    text-align: center;
+    color: #888;
+    margin-bottom: 24px;
+  }
+  .panels {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .panel {
+    flex: 1;
+    min-width: 250px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .footnote {
+    font-size: 10px;
+    color: #ccc;
+    text-align: center;
+    margin-top: 24px;
+  }
+  @media (max-width: 720px) {
+    .panels { flex-direction: column; align-items: center; }
+  }
+
+
+  .full-table {
+    border-collapse: collapse;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    margin: 0 auto;
+    width: auto;
+  }
+  .full-table th {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 8px 14px;
+    border-bottom: 2px solid #ddd;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .full-table th.left { text-align: left; }
+  .full-table td {
+    padding: 6px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: right;
+  }
+  .full-table td.left { text-align: left; }
+  .full-table tr.xsa { background: #f8faff; }
+  .full-table tr.group-start td { border-top: 2px solid #e0e0e0; }
+  .d-pos { color: #1a7a2e; font-weight: 600; }
+  .d-neg { color: #c33; font-weight: 600; }
+  .type-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  .type-badge.baseline { background: #f0f0f0; color: #666; }
+  .type-badge.xsa { background: #e8f5e9; color: #2e7d32; }
+
+</style>
+</head>
+<body>
+
+<div class="figure-container">
+  <h2>Full results: XSA vs Baseline on CC12M</h2>
+  <div class="subtitle">
+    All runs trained 32 epochs on CC12M at 224px resolution. Zero-shot evaluation on ImageNet.
+  </div>
+  <table class="full-table">
+    <thead>
+      <tr>
+        <th class="left">Model</th>
+        <th>Tokens</th>
+        <th class="left">Type</th>
+        <th>Val Loss</th>
+        <th>ZS Top-1</th>
+        <th>ZS Top-5</th>
+        <th>&Delta; Top-1</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+  <div class="footnote">
+    &Delta; Top-1 = XSA minus matched Baseline (percentage points).
+  </div>
+</div>
+<script>
+const ROWS = [{"model": "ViT-B/32", "tokens": 49, "type": "Baseline", "seed": 0, "val_loss": 2.997, "zs_top1": 17.16, "zs_top5": 36.34, "d_top1": null, "is_xsa": false, "model_base": "ViT-B/32"}, {"model": "ViT-B/32", "tokens": 49, "type": "XSA", "seed": 0, "val_loss": 3.85, "zs_top1": 9.69, "zs_top5": 23.88, "d_top1": -7.47, "is_xsa": true, "model_base": "ViT-B/32"}, {"model": "ViT-B/16", "tokens": 196, "type": "Baseline", "seed": 0, "val_loss": 2.255, "zs_top1": 21.86, "zs_top5": 43.9, "d_top1": null, "is_xsa": false, "model_base": "ViT-B/16"}, {"model": "ViT-B/16", "tokens": 196, "type": "XSA", "seed": 0, "val_loss": 2.59, "zs_top1": 19.51, "zs_top5": 40.46, "d_top1": -2.34, "is_xsa": true, "model_base": "ViT-B/16"}, {"model": "ViT-B/14", "tokens": 256, "type": "Baseline", "seed": 0, "val_loss": 3.079, "zs_top1": 16.28, "zs_top5": 35.3, "d_top1": null, "is_xsa": false, "model_base": "ViT-B/14"}, {"model": "ViT-B/14", "tokens": 256, "type": "XSA", "seed": 0, "val_loss": 2.626, "zs_top1": 19.72, "zs_top5": 40.49, "d_top1": 3.44, "is_xsa": true, "model_base": "ViT-B/14"}];
+const tbody = document.getElementById('table-body');
+let prevModel = '';
+
+ROWS.forEach(r => {
+  const tr = document.createElement('tr');
+  if (r.is_xsa) tr.className = 'xsa';
+  if (r.model_base !== prevModel) {
+    tr.classList.add('group-start');
+    prevModel = r.model_base;
+  }
+
+  // Model
+  let td = document.createElement('td');
+  td.className = 'left';
+  td.textContent = r.model;
+  tr.appendChild(td);
+
+  // Tokens
+  td = document.createElement('td');
+  td.textContent = r.tokens;
+  tr.appendChild(td);
+
+  // Type badge
+  td = document.createElement('td');
+  td.className = 'left';
+  const badge = document.createElement('span');
+  badge.className = 'type-badge ' + (r.is_xsa ? 'xsa' : 'baseline');
+  badge.textContent = r.type;
+  td.appendChild(badge);
+  tr.appendChild(td);
+
+  // Val loss
+  td = document.createElement('td');
+  td.textContent = r.val_loss.toFixed(3);
+  tr.appendChild(td);
+
+  // ZS Top-1
+  td = document.createElement('td');
+  td.textContent = r.zs_top1.toFixed(2) + '%';
+  tr.appendChild(td);
+
+  // ZS Top-5
+  td = document.createElement('td');
+  td.textContent = r.zs_top5.toFixed(2) + '%';
+  tr.appendChild(td);
+
+  // Delta
+  td = document.createElement('td');
+  if (r.d_top1 !== null) {
+    const sign = r.d_top1 >= 0 ? '+' : '';
+    td.textContent = sign + r.d_top1.toFixed(2) + 'pp';
+    td.className = r.d_top1 >= 0 ? 'd-pos' : 'd-neg';
+  } else {
+    td.textContent = '\u2014';
+    td.style.color = '#ccc';
+  }
+  tr.appendChild(td);
+
+  tbody.appendChild(tr);
+});
+</script>
+<script>new ResizeObserver(()=>{window.parent.postMessage({iframeHeight:document.body.scrollHeight,src:location.pathname},"*")}).observe(document.body);window.addEventListener("load",()=>{window.parent.postMessage({iframeHeight:document.body.scrollHeight,src:location.pathname},"*")})</script></body>
+</html>

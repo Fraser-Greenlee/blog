@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XSA Scaling</title>
+<style>
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: transparent;
+    color: #333;
+    line-height: 1.5;
+  }
+  .figure-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 4px;
+    color: #222;
+  }
+  .subtitle {
+    font-size: 13px;
+    text-align: center;
+    color: #888;
+    margin-bottom: 24px;
+  }
+  .panels {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .panel {
+    flex: 1;
+    min-width: 250px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .footnote {
+    font-size: 10px;
+    color: #ccc;
+    text-align: center;
+    margin-top: 24px;
+  }
+  @media (max-width: 720px) {
+    .panels { flex-direction: column; align-items: center; }
+  }
+
+
+  .scaling-panels {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="figure-container">
+  <h2>XSA scales with patch similarity</h2>
+  <div class="subtitle">
+    XSA helps when value vectors are similar (B/14) but hurts when they are distinct (B/32).
+  </div>
+  <div class="scaling-panels">
+    <div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="320" height="240" style="overflow:visible">
+<text x="160.0" y="14" text-anchor="middle" font-size="12" font-weight="600" fill="#333">XSA effect by model</text>
+<line x1="52" y1="204.0" x2="306" y2="204.0" stroke="#eee" stroke-width="1"/>
+<text x="46" y="207.0" text-anchor="end" font-size="9" fill="#999">-9.108</text>
+<line x1="52" y1="169.2" x2="306" y2="169.2" stroke="#eee" stroke-width="1"/>
+<text x="46" y="172.2" text-anchor="end" font-size="9" fill="#999">-6.272</text>
+<line x1="52" y1="134.4" x2="306" y2="134.4" stroke="#eee" stroke-width="1"/>
+<text x="46" y="137.4" text-anchor="end" font-size="9" fill="#999">-3.435</text>
+<line x1="52" y1="99.6" x2="306" y2="99.6" stroke="#eee" stroke-width="1"/>
+<text x="46" y="102.6" text-anchor="end" font-size="9" fill="#999">-0.599</text>
+<line x1="52" y1="64.8" x2="306" y2="64.8" stroke="#eee" stroke-width="1"/>
+<text x="46" y="67.8" text-anchor="end" font-size="9" fill="#999">2.238</text>
+<line x1="52" y1="30.0" x2="306" y2="30.0" stroke="#eee" stroke-width="1"/>
+<text x="46" y="33.0" text-anchor="end" font-size="9" fill="#999">5.074</text>
+<line x1="52" y1="92.3" x2="306" y2="92.3" stroke="#999" stroke-width="1" stroke-dasharray="4,2"/>
+<line x1="52" y1="30" x2="52" y2="204" stroke="#ccc" stroke-width="1"/>
+<line x1="52" y1="204" x2="306" y2="204" stroke="#ccc" stroke-width="1"/>
+<text x="12" y="117.0" text-anchor="middle" font-size="10" fill="#666" transform="rotate(-90,12,117.0)">XSA delta top-1 (pp)</text>
+<rect x="68.9" y="92.3" width="50.8" height="91.7" fill="#4477AA" rx="2"/>
+<text x="94.3" y="218" text-anchor="middle" font-size="10" fill="#555">B/32</text>
+<text x="94.3" y="195.9" text-anchor="middle" font-size="9" font-weight="600" fill="#4477AA">-7.47pp</text>
+<rect x="153.6" y="92.3" width="50.8" height="28.8" fill="#66CCEE" rx="2"/>
+<text x="179.0" y="218" text-anchor="middle" font-size="10" fill="#555">B/16</text>
+<text x="179.0" y="133.0" text-anchor="middle" font-size="9" font-weight="600" fill="#66CCEE">-2.34pp</text>
+<rect x="238.3" y="50.1" width="50.8" height="42.2" fill="#228833" rx="2"/>
+<text x="263.7" y="218" text-anchor="middle" font-size="10" fill="#555">B/14</text>
+<text x="263.7" y="46.1" text-anchor="middle" font-size="9" font-weight="600" fill="#228833">+3.44pp</text>
+</svg></div>
+    <div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="320" height="240" style="overflow:visible">
+<text x="160.0" y="14" text-anchor="middle" font-size="12" font-weight="600" fill="#333">Value similarity predicts XSA effect</text>
+<line x1="52" y1="204.0" x2="306" y2="204.0" stroke="#eee" stroke-width="1"/>
+<text x="46" y="207.0" text-anchor="end" font-size="9" fill="#999">-9.108</text>
+<line x1="52" y1="169.2" x2="306" y2="169.2" stroke="#eee" stroke-width="1"/>
+<text x="46" y="172.2" text-anchor="end" font-size="9" fill="#999">-6.272</text>
+<line x1="52" y1="134.4" x2="306" y2="134.4" stroke="#eee" stroke-width="1"/>
+<text x="46" y="137.4" text-anchor="end" font-size="9" fill="#999">-3.435</text>
+<line x1="52" y1="99.6" x2="306" y2="99.6" stroke="#eee" stroke-width="1"/>
+<text x="46" y="102.6" text-anchor="end" font-size="9" fill="#999">-0.599</text>
+<line x1="52" y1="64.8" x2="306" y2="64.8" stroke="#eee" stroke-width="1"/>
+<text x="46" y="67.8" text-anchor="end" font-size="9" fill="#999">2.238</text>
+<line x1="52" y1="30.0" x2="306" y2="30.0" stroke="#eee" stroke-width="1"/>
+<text x="46" y="33.0" text-anchor="end" font-size="9" fill="#999">5.074</text>
+<text x="52.0" y="218" text-anchor="middle" font-size="9" fill="#999">0.030</text>
+<text x="102.8" y="218" text-anchor="middle" font-size="9" fill="#999">0.074</text>
+<text x="153.6" y="218" text-anchor="middle" font-size="9" fill="#999">0.118</text>
+<text x="204.4" y="218" text-anchor="middle" font-size="9" fill="#999">0.162</text>
+<text x="255.2" y="218" text-anchor="middle" font-size="9" fill="#999">0.206</text>
+<text x="306.0" y="218" text-anchor="middle" font-size="9" fill="#999">0.250</text>
+<line x1="52" y1="92.3" x2="306" y2="92.3" stroke="#999" stroke-width="1" stroke-dasharray="4,2"/>
+<line x1="52" y1="30" x2="52" y2="204" stroke="#ccc" stroke-width="1"/>
+<line x1="52" y1="204" x2="306" y2="204" stroke="#ccc" stroke-width="1"/>
+<text x="179.0" y="238" text-anchor="middle" font-size="10" fill="#666">Baseline mean cos(Vi, Vj)</text>
+<text x="12" y="117.0" text-anchor="middle" font-size="10" fill="#666" transform="rotate(-90,12,117.0)">XSA delta top-1 (pp)</text>
+<line x1="52.0" y1="174.5" x2="306.0" y2="31.3" stroke="#ccc" stroke-width="1.5" stroke-dasharray="6,3"/>
+<circle cx="81.3" cy="183.9" r="5" fill="#4477AA" stroke="#fff" stroke-width="1.5"/>
+<text x="89.3" y="186.9" font-size="9" font-weight="600" fill="#4477AA">B/32</text>
+<circle cx="96.9" cy="121.0" r="5" fill="#66CCEE" stroke="#fff" stroke-width="1.5"/>
+<text x="104.9" y="124.0" font-size="9" font-weight="600" fill="#66CCEE">B/16</text>
+<circle cx="276.7" cy="50.1" r="5" fill="#228833" stroke="#fff" stroke-width="1.5"/>
+<text x="284.7" y="53.1" font-size="9" font-weight="600" fill="#228833">B/14</text>
+</svg></div>
+  </div>
+  <div class="footnote">
+    Primary variants: B/32 default, B/16 default, B/14 v2.
+    cos(Vi, Vj) averaged across all 12 layers from checkpoint diagnostics.
+  </div>
+</div>
+<script>new ResizeObserver(()=>{window.parent.postMessage({iframeHeight:document.body.scrollHeight,src:location.pathname},"*")}).observe(document.body);window.addEventListener("load",()=>{window.parent.postMessage({iframeHeight:document.body.scrollHeight,src:location.pathname},"*")})</script></body>
+</html>

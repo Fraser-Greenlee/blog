@@ -1,0 +1,74 @@
+---
+title: "Attention Similarity Bias is Worse in Vision"
+description: "70% of what a ViT token gets back from attention is information it already has. I measure this across patch sizes, show it compounds through layers, and test a projection that removes it."
+date: 2026-04-07
+categories: ["machine-learning", "vision-transformers"]
+draft: false
+---
+
+<script is:inline>{`
+window.addEventListener('message', e => {
+  if (e.data && e.data.iframeHeight) {
+    document.querySelectorAll('iframe').forEach(f => {
+      if (f.contentWindow === e.source || (e.data.src && f.src.includes(e.data.src))) {
+        f.style.height = (e.data.iframeHeight + 8) + 'px';
+      }
+    });
+  }
+});
+`}</script>
+
+In a trained ViT-B/14, inter-token value similarity grows consistently after layer 5. In a ViT-B/32, it stays flat. The self-similarity compounds: similar patches produce similar value vectors, attention mixes them, and the next layer's input is more similar still.
+
+[Zhai (2026)](https://arxiv.org/abs/2603.09078) identified this pattern in language models and called it the "attention similarity bias." The fix, Exclusive Self Attention (XSA), projects out the $V_{\text{self}}$ component after attention:
+
+```python
+Vn = F.normalize(V, dim=-1)
+Z = Y - (Y * Vn).sum(dim=-1, keepdim=True) * Vn
+```
+
+In language at 2048 tokens, $\cos(Y, V_{\text{self}})$ reaches 0.1 to 0.6. In vision at 256 tokens, it hits 0.7. I tested XSA on CLIP vision transformers to see whether the stronger bias translates to stronger gains.
+
+---
+
+## Where it comes from
+
+For a 224px input a ViT-B/14 divides the image into a 16x16 grid. A 14x14 pixel patch of grass looks like the patch of grass next to it. A ViT-B/32 gets just a 7x7 grid where each patch captures enough of the scene to be distinct.
+
+<iframe src="/figures/xsa-similarity-maps.html" width="100%" height="100" style="border: none; overflow: hidden;" />
+
+<iframe src="/figures/xsa-projection.html" width="100%" height="100" style="border: none; overflow: hidden;" />
+
+At ViT-B/32, the most attended patches are grass, trees, jacket. At ViT-B/14, they're near-copies of the target. This feeds directly into the per-layer diagnostic:
+
+<iframe src="/figures/xsa-diagnostic-layers.html" width="100%" height="100" style="border: none; overflow: hidden;" />
+
+B/14's inter-token value similarity doubles between layers 5 and 11. B/32 and B/16 never ignite. The similarity is concentrated along the $V_{\text{self}}$ direction: measuring $\cos(V_i, V_j)$ on just the orthogonal components gives near-zero for all models. XSA targets exactly the axis where the redundancy accumulates.
+
+Modern VLMs push well beyond 256 tokens. Qwen2.5-VL uses up to 16,384 visual tokens. SigLIP runs at 384px (576 tokens). The compounding should be stronger still.
+
+---
+
+## Training results
+
+<iframe src="/figures/xsa-results-table.html" width="100%" height="100" style="border: none; overflow: hidden;" />
+
+<iframe src="/figures/xsa-scaling.html" width="100%" height="100" style="border: none; overflow: hidden;" />
+
+Baseline $\cos(V_i, V_j)$ almost perfectly predicts XSA's effect. The +3.4pp gain at B/14 compares favourably to the language results (+0.26 to +1.36 across 0.7B to 2.7B). These results at 256 tokens are just the beginning of the curve.
+
+---
+
+## Beyond $V_{\text{self}}$
+
+XSA's strength is that the redundant direction comes from the architecture, not from data. The residual stream carries $V_{\text{self}}$, so $V_{\text{self}}$ in the attention output is structurally redundant.
+
+Its weakness is the hard projection. At 49 tokens, the direction is correct but the redundancy isn't strong enough to justify fully removing it. A learned per-head scalar $\alpha$ on the projection strength would handle this: project strongly in later layers of B/14 where similarity compounds, back off at B/32 where it doesn't.
+
+This sits between XSA and [Gated Attention](https://arxiv.org/abs/2505.06708), which learns a full element-wise sigmoid gate on each head's output. Gated Attention can suppress any kind of uninformative output but has to discover what to suppress from data. A gated $V_{\text{self}}$ projection would be more targeted: the architecture tells you *what* to remove, the gate learns *how much*.
+
+The same diagnostic approach could identify redundant directions elsewhere in the transformer block. Measure alignment between a module's output and what the residual stream already carries. If a module consistently biases toward information the skip connection already provides, there's a projection to try.
+
+---
+
+*Trained on CC12M with [OpenCLIP](https://github.com/mlfoundations/open_clip).*

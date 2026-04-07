@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Training Results</title>
+<style>
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: transparent;
+    color: #333;
+    line-height: 1.5;
+  }
+  .figure-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 4px;
+    color: #222;
+  }
+  .subtitle {
+    font-size: 13px;
+    text-align: center;
+    color: #888;
+    margin-bottom: 24px;
+  }
+  .panels {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .panel {
+    flex: 1;
+    min-width: 250px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .footnote {
+    font-size: 10px;
+    color: #ccc;
+    text-align: center;
+    margin-top: 24px;
+  }
+  @media (max-width: 720px) {
+    .panels { flex-direction: column; align-items: center; }
+  }
+
+
+  .fig3-layout {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .results-table {
+    border-collapse: collapse;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .results-table th {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    border-bottom: 2px solid #e0e0e0;
+    text-align: right;
+  }
+  .results-table th:first-child,
+  .results-table th:nth-child(2),
+  .results-table th:nth-child(3) {
+    text-align: left;
+  }
+  .results-table td {
+    padding: 5px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: right;
+  }
+  .results-table td:first-child,
+  .results-table td:nth-child(2),
+  .results-table td:nth-child(3) {
+    text-align: left;
+  }
+  .results-table tr.xsa-row { background: #fafbff; }
+  .results-table tr.group-start td { border-top: 2px solid #e0e0e0; }
+  .delta-pos { color: #1a7a2e; font-weight: 600; }
+  .delta-neg { color: #c33; font-weight: 600; }
+  .bar-chart-wrap { flex-shrink: 0; }
+
+</style>
+</head>
+<body>
+
+<div class="figure-container">
+  <h2>Training results: Baseline vs XSA</h2>
+  <div class="subtitle">All models trained 32 epochs on CC12M at 224px. Zero-shot ImageNet evaluation.</div>
+  <div class="fig3-layout">
+    <table class="results-table" id="results-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Type</th>
+          <th>Tokens</th>
+          <th>Val Loss</th>
+          <th>ZS Top-1</th>
+          <th>ZS Top-5</th>
+          <th>&Delta; Top-1</th>
+        </tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+    <div class="bar-chart-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 220" width="300" height="220" style="overflow:visible">
+<text x="150.0" y="14" text-anchor="middle" font-size="12" font-weight="600" fill="#333">XSA effect on zero-shot top-1</text>
+<line x1="52" y1="184.0" x2="286" y2="184.0" stroke="#eee" stroke-width="1"/>
+<text x="46" y="187.0" text-anchor="end" font-size="9" fill="#999">-9.107</text>
+<line x1="52" y1="153.2" x2="286" y2="153.2" stroke="#eee" stroke-width="1"/>
+<text x="46" y="156.2" text-anchor="end" font-size="9" fill="#999">-6.270</text>
+<line x1="52" y1="122.4" x2="286" y2="122.4" stroke="#eee" stroke-width="1"/>
+<text x="46" y="125.4" text-anchor="end" font-size="9" fill="#999">-3.433</text>
+<line x1="52" y1="91.6" x2="286" y2="91.6" stroke="#eee" stroke-width="1"/>
+<text x="46" y="94.6" text-anchor="end" font-size="9" fill="#999">-0.597</text>
+<line x1="52" y1="60.8" x2="286" y2="60.8" stroke="#eee" stroke-width="1"/>
+<text x="46" y="63.8" text-anchor="end" font-size="9" fill="#999">2.240</text>
+<line x1="52" y1="30.0" x2="286" y2="30.0" stroke="#eee" stroke-width="1"/>
+<text x="46" y="33.0" text-anchor="end" font-size="9" fill="#999">5.076</text>
+<line x1="52" y1="85.1" x2="286" y2="85.1" stroke="#999" stroke-width="1" stroke-dasharray="4,2"/>
+<line x1="52" y1="30" x2="52" y2="184" stroke="#ccc" stroke-width="1"/>
+<line x1="52" y1="184" x2="286" y2="184" stroke="#ccc" stroke-width="1"/>
+<text x="12" y="107.0" text-anchor="middle" font-size="10" fill="#666" transform="rotate(-90,12,107.0)">XSA delta top-1 (pp)</text>
+<rect x="67.6" y="85.1" width="46.8" height="81.1" fill="#4477AA" rx="2"/>
+<text x="91.0" y="198" text-anchor="middle" font-size="10" fill="#555">B/32</text>
+<text x="91.0" y="178.2" text-anchor="middle" font-size="9" font-weight="600" fill="#4477AA">-7.47pp</text>
+<rect x="145.6" y="85.1" width="46.8" height="25.4" fill="#66CCEE" rx="2"/>
+<text x="169.0" y="198" text-anchor="middle" font-size="10" fill="#555">B/16</text>
+<text x="169.0" y="122.5" text-anchor="middle" font-size="9" font-weight="600" fill="#66CCEE">-2.34pp</text>
+<rect x="223.6" y="47.8" width="46.8" height="37.4" fill="#228833" rx="2"/>
+<text x="247.0" y="198" text-anchor="middle" font-size="10" fill="#555">B/14</text>
+<text x="247.0" y="43.8" text-anchor="middle" font-size="9" font-weight="600" fill="#228833">+3.44pp</text>
+</svg>
+    </div>
+  </div>
+  <div class="footnote">pp = percentage points. v2b is a second seed (seed=42) for ViT-B/14.</div>
+</div>
+<script>
+const ROWS = [{"model": "ViT-B/32", "type": "Baseline", "variant": "default", "tokens": 49, "val_loss": 2.997, "zs_top1": 17.16, "zs_top5": 36.34, "d_top1": null}, {"model": "ViT-B/32", "type": "XSA", "variant": "default", "tokens": 49, "val_loss": 3.85, "zs_top1": 9.69, "zs_top5": 23.88, "d_top1": -7.47}, {"model": "ViT-B/16", "type": "Baseline", "variant": "default", "tokens": 196, "val_loss": 2.255, "zs_top1": 21.86, "zs_top5": 43.9, "d_top1": null}, {"model": "ViT-B/16", "type": "XSA", "variant": "default", "tokens": 196, "val_loss": 2.59, "zs_top1": 19.51, "zs_top5": 40.46, "d_top1": -2.34}, {"model": "ViT-B/14", "type": "Baseline", "variant": "v2", "tokens": 256, "val_loss": 3.079, "zs_top1": 16.28, "zs_top5": 35.3, "d_top1": null}, {"model": "ViT-B/14", "type": "XSA", "variant": "v2", "tokens": 256, "val_loss": 2.626, "zs_top1": 19.72, "zs_top5": 40.49, "d_top1": 3.44}, {"model": "ViT-B/14", "type": "Baseline", "variant": "v2b", "tokens": 256, "val_loss": 2.849, "zs_top1": 18.15, "zs_top5": 38.38, "d_top1": null}, {"model": "ViT-B/14", "type": "XSA", "variant": "v2b", "tokens": 256, "val_loss": 2.568, "zs_top1": 19.88, "zs_top5": 40.96, "d_top1": 1.73}];
+const tbody = document.getElementById('results-body');
+let prevModel = '';
+ROWS.forEach(r => {
+  const tr = document.createElement('tr');
+  if (r.type === 'XSA') tr.className = 'xsa-row';
+  if (r.model !== prevModel) {
+    tr.classList.add('group-start');
+    prevModel = r.model;
+  }
+
+  const cells = [
+    r.model + (r.variant !== 'default' && r.variant !== 'v2' ? ' (' + r.variant + ')' : ''),
+    r.type,
+    r.tokens,
+    r.val_loss.toFixed(3),
+    r.zs_top1.toFixed(2) + '%',
+    r.zs_top5.toFixed(2) + '%',
+  ];
+
+  cells.forEach(c => {
+    const td = document.createElement('td');
+    td.textContent = c;
+    tr.appendChild(td);
+  });
+
+  // Delta column
+  const dtd = document.createElement('td');
+  if (r.d_top1 !== null) {
+    const sign = r.d_top1 >= 0 ? '+' : '';
+    dtd.textContent = sign + r.d_top1.toFixed(2) + 'pp';
+    dtd.className = r.d_top1 >= 0 ? 'delta-pos' : 'delta-neg';
+  } else {
+    dtd.textContent = '—';
+    dtd.style.color = '#ccc';
+  }
+  tr.appendChild(dtd);
+
+  tbody.appendChild(tr);
+});
+</script>
+<script>new ResizeObserver(()=>{window.parent.postMessage({iframeHeight:document.body.scrollHeight,src:location.pathname},"*")}).observe(document.body);window.addEventListener("load",()=>{window.parent.postMessage({iframeHeight:document.body.scrollHeight,src:location.pathname},"*")})</script></body>
+</html>
