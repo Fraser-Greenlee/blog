@@ -314,7 +314,9 @@ function applyTool() {
   ctx.lineWidth = currentToolWidth();
 }
 function currentToolStyle() {
-  return tool === 'pencil' ? 'rgba(70, 70, 70, 0.35)' : '#222';
+  // Pencil is intentionally lighter than the trace overlay (which is ~25%
+  // opacity black) so trace strokes remain visible underneath sketching.
+  return tool === 'pencil' ? 'rgba(120, 120, 120, 0.12)' : '#222';
 }
 function currentToolWidth() {
   return tool === 'pencil'
