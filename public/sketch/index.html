@@ -104,7 +104,7 @@
     image-rendering: -webkit-optimize-contrast;
   }
   /* The right stage stacks: white background -> faint target (trace) -> draw canvas. */
-  #drawWrap { position: relative; }
+  #drawWrap { position: relative; transform-origin: 0 0; will-change: transform; }
   #drawWrap > * {
     position: absolute; top: 0; left: 0;
     width: 100%; height: 100%;
@@ -113,7 +113,9 @@
   #traceImg { opacity: 0; transition: opacity 0.15s; pointer-events: none; object-fit: fill; box-shadow: none; background: transparent; }
   #drawWrap.trace #traceImg { opacity: 0.25; }
   #drawCanvas { touch-action: none; cursor: crosshair; background: transparent !important; box-shadow: none; }
-  #targetImg { object-fit: contain; max-width: 100%; max-height: 100%; }
+  /* Target image is wrapped so we can apply the same transform as the right side. */
+  #targetWrap { position: relative; transform-origin: 0 0; will-change: transform; }
+  #targetImg { display: block; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 
   @media (max-width: 820px) {
     main { flex-direction: column; }
@@ -134,14 +136,17 @@
   <span style="border-left:1px solid var(--border); height:1.6rem; margin:0 .2rem"></span>
   <button id="undoBtn" disabled>Undo</button>
   <button id="redoBtn" disabled>Redo</button>
+  <button id="resetZoomBtn">Reset zoom</button>
   <div class="grow"></div>
   <div id="score">—</div>
 </header>
 <main>
   <section class="panel">
     <div class="panel-label">Target</div>
-    <div class="stage">
-      <img id="targetImg" alt="">
+    <div class="stage" id="leftStage">
+      <div id="targetWrap">
+        <img id="targetImg" alt="">
+      </div>
     </div>
   </section>
   <section class="panel">
@@ -167,6 +172,8 @@ const els = {
   trace: document.getElementById('traceImg'),
   canvas: document.getElementById('drawCanvas'),
   drawWrap: document.getElementById('drawWrap'),
+  targetWrap: document.getElementById('targetWrap'),
+  leftStage: document.getElementById('leftStage'),
   stage: document.getElementById('rightStage'),
   rightLabel: document.getElementById('rightLabel'),
   timer: document.getElementById('timer'),
@@ -179,6 +186,7 @@ const els = {
   pencilBtn: document.getElementById('pencilBtn'),
   undoBtn: document.getElementById('undoBtn'),
   redoBtn: document.getElementById('redoBtn'),
+  resetZoomBtn: document.getElementById('resetZoomBtn'),
 };
 
 let manifest = [];
@@ -201,24 +209,26 @@ let strokes = [];
 let redoStack = [];
 let activeStroke = null;
 
-// ---------- Block iOS zoom gestures ----------
-// Safari ignores `user-scalable=no` since iOS 10, so we have to actively
-// kill pinch and double-tap zoom on every relevant event.
+// Shared view transform applied to both target and draw wrappers. Stroke
+// points stay in untransformed "content" coordinates so they stay anchored to
+// the underlying image regardless of zoom/pan.
+let view = { scale: 1, tx: 0, ty: 0 };
+const MIN_SCALE = 1;
+const MAX_SCALE = 8;
+let baseSize = { w: 0, h: 0 };
+
+// ---------- Block iOS *page* zoom (not the in-app zoom) ----------
+// We still want pinch zoom on our canvas/target, just not the whole page.
+// We block iOS's native gesture/double-tap zoom; per-stage code below
+// implements its own pinch.
 ['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => {
   document.addEventListener(ev, e => e.preventDefault(), { passive: false });
 });
 let lastTouchEnd = 0;
 document.addEventListener('touchend', e => {
   const now = Date.now();
-  if (now - lastTouchEnd < 350) e.preventDefault(); // double-tap zoom
+  if (now - lastTouchEnd < 350) e.preventDefault();
   lastTouchEnd = now;
-}, { passive: false });
-// Multi-touch -> pinch. Block it outside the canvas too so the page never zooms.
-document.addEventListener('touchstart', e => {
-  if (e.touches.length > 1) e.preventDefault();
-}, { passive: false });
-document.addEventListener('touchmove', e => {
-  if (e.touches.length > 1 || e.scale && e.scale !== 1) e.preventDefault();
 }, { passive: false });
 document.addEventListener('dblclick', e => e.preventDefault());
 
@@ -235,15 +245,25 @@ function pickRandom() {
 function fitCanvasToImage() {
   const img = els.target;
   if (!img.naturalWidth) return;
-  const stageRect = els.stage.getBoundingClientRect();
-  const maxW = stageRect.width - 16;
-  const maxH = stageRect.height - 16;
-  const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight);
+  // Each stage gets its own fit since the panels can be different sizes
+  // (especially when laid out as columns on portrait iPad). Pick the smaller
+  // fit so both stages render at exactly the same content size — that's what
+  // makes the synced zoom/pan look right.
+  const lr = els.leftStage.getBoundingClientRect();
+  const rr = els.stage.getBoundingClientRect();
+  const fit = (rect) => Math.min(
+    (rect.width - 16) / img.naturalWidth,
+    (rect.height - 16) / img.naturalHeight,
+  );
+  const scale = Math.min(fit(lr), fit(rr));
   const cssW = Math.floor(img.naturalWidth * scale);
   const cssH = Math.floor(img.naturalHeight * scale);
+  baseSize = { w: cssW, h: cssH };
   const dpr = window.devicePixelRatio || 1;
   els.drawWrap.style.width = cssW + 'px';
   els.drawWrap.style.height = cssH + 'px';
+  els.targetWrap.style.width = cssW + 'px';
+  els.targetWrap.style.height = cssH + 'px';
   els.canvas.style.width = cssW + 'px';
   els.canvas.style.height = cssH + 'px';
   els.canvas.width = cssW * dpr;
@@ -256,6 +276,37 @@ function fitCanvasToImage() {
   applyTool();
   img.style.width = cssW + 'px';
   img.style.height = cssH + 'px';
+  applyView();
+}
+
+function applyView() {
+  const t = `translate(${view.tx}px, ${view.ty}px) scale(${view.scale})`;
+  els.drawWrap.style.transform = t;
+  els.targetWrap.style.transform = t;
+}
+
+function setView(scale, tx, ty) {
+  scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+  // Clamp pan so the content stays at least partly visible. With scale 1 and
+  // both panels exactly framing the image, keep pan = 0; for higher scales,
+  // allow panning anywhere within the scaled box.
+  if (baseSize.w && baseSize.h) {
+    const w = baseSize.w * scale;
+    const h = baseSize.h * scale;
+    const minTx = Math.min(0, baseSize.w - w);
+    const minTy = Math.min(0, baseSize.h - h);
+    const maxTx = 0;
+    const maxTy = 0;
+    tx = Math.max(minTx, Math.min(maxTx, tx));
+    ty = Math.max(minTy, Math.min(maxTy, ty));
+  }
+  view.scale = scale; view.tx = tx; view.ty = ty;
+  applyView();
+}
+
+function resetView() {
+  view = { scale: 1, tx: 0, ty: 0 };
+  applyView();
 }
 
 function applyTool() {
@@ -276,6 +327,7 @@ function startRound() {
   strokes = [];
   redoStack = [];
   activeStroke = null;
+  resetView();
   updateUndoButtons();
   setScore(null);
   currentSrc = pickRandom();
@@ -325,20 +377,146 @@ function finishRound() {
   showOverlay();
 }
 
-// ---------- Drawing ----------
-function pointerPos(e) {
+// ---------- Drawing + zoom/pan ----------
+// The draw canvas is wrapped by an element with a CSS transform. To convert
+// a clientX/clientY into content (untransformed) coordinates we use the
+// canvas's bounding rect and divide by the live view scale.
+function pointerPosContent(clientX, clientY) {
   const r = els.canvas.getBoundingClientRect();
-  return { x: e.clientX - r.left, y: e.clientY - r.top };
+  return {
+    x: (clientX - r.left) / view.scale,
+    y: (clientY - r.top)  / view.scale,
+  };
 }
+
+// Touch state for pinch/pan. We track touches per-stage so a 2-finger pinch
+// on either stage zooms both. A single touch on the right stage draws (via
+// pointer events below).
+function makePinchHandler(stageEl) {
+  let active = new Map(); // identifier -> {clientX, clientY}
+  let initial = null;     // snapshot at start of 2-finger gesture
+
+  function recompute() {
+    if (active.size !== 2) { initial = null; return; }
+    const pts = Array.from(active.values());
+    const cx = (pts[0].clientX + pts[1].clientX) / 2;
+    const cy = (pts[0].clientY + pts[1].clientY) / 2;
+    const dx = pts[1].clientX - pts[0].clientX;
+    const dy = pts[1].clientY - pts[0].clientY;
+    const dist = Math.hypot(dx, dy);
+    if (!initial) {
+      // Starting a new 2-finger gesture.
+      const wrapRect = els.drawWrap.getBoundingClientRect();
+      const stageRect = els.stage.getBoundingClientRect();
+      // Anchor in content space: the centroid of the two fingers, mapped
+      // through the inverse of the current transform that's applied to the
+      // right-side wrapper. We use the right-side wrapper because both
+      // wrappers receive the same transform; content coords are in the same
+      // base space.
+      initial = {
+        cx, cy, dist,
+        startScale: view.scale,
+        startTx: view.tx, startTy: view.ty,
+        // Centroid in content coords:
+        contentX: (cx - wrapRect.left) / view.scale,
+        contentY: (cy - wrapRect.top)  / view.scale,
+      };
+      return;
+    }
+    const newScale = initial.startScale * (dist / initial.dist);
+    // We want the content point (initial.contentX, initial.contentY) to map
+    // to the *current* centroid (cx, cy) on screen. The wrapper's screen
+    // origin is at stageRect.{left,top} + view.{tx,ty}.
+    const stageRect = stageEl.getBoundingClientRect();
+    const targetTx = (cx - stageRect.left) - initial.contentX * newScale;
+    const targetTy = (cy - stageRect.top)  - initial.contentY * newScale;
+    setView(newScale, targetTx, targetTy);
+  }
+
+  stageEl.addEventListener('touchstart', e => {
+    for (const t of e.changedTouches) {
+      active.set(t.identifier, { clientX: t.clientX, clientY: t.clientY });
+    }
+    if (active.size >= 2) {
+      e.preventDefault();
+      // If a stroke was in progress, abandon it.
+      if (drawing && activeStroke) {
+        // Roll back the partial stroke; it would otherwise be a single-point
+        // line where the user actually wanted to pinch.
+        strokes.pop();
+        activeStroke = null;
+        drawing = false;
+        redrawAllStrokes();
+        updateUndoButtons();
+      }
+      // Reset initial so recompute() captures fresh anchor.
+      initial = null;
+      recompute();
+    }
+  }, { passive: false });
+  stageEl.addEventListener('touchmove', e => {
+    let updated = false;
+    for (const t of e.changedTouches) {
+      if (active.has(t.identifier)) {
+        active.set(t.identifier, { clientX: t.clientX, clientY: t.clientY });
+        updated = true;
+      }
+    }
+    if (active.size >= 2) {
+      e.preventDefault();
+      if (updated) recompute();
+    }
+  }, { passive: false });
+  function endTouch(e) {
+    for (const t of e.changedTouches) active.delete(t.identifier);
+    if (active.size < 2) initial = null;
+  }
+  stageEl.addEventListener('touchend', endTouch);
+  stageEl.addEventListener('touchcancel', endTouch);
+}
+makePinchHandler(els.stage);
+makePinchHandler(els.leftStage);
+
+// Trackpad / mouse-wheel zoom. Cmd/Ctrl+wheel zooms; plain wheel pans.
+function makeWheelHandler(stageEl) {
+  stageEl.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (e.ctrlKey || e.metaKey) {
+      const stageRect = stageEl.getBoundingClientRect();
+      const wrapRect = els.drawWrap.getBoundingClientRect();
+      const cx = e.clientX, cy = e.clientY;
+      const contentX = (cx - wrapRect.left) / view.scale;
+      const contentY = (cy - wrapRect.top)  / view.scale;
+      const factor = Math.exp(-e.deltaY * 0.01);
+      const newScale = view.scale * factor;
+      const targetTx = (cx - stageRect.left) - contentX * newScale;
+      const targetTy = (cy - stageRect.top)  - contentY * newScale;
+      setView(newScale, targetTx, targetTy);
+    } else {
+      setView(view.scale, view.tx - e.deltaX, view.ty - e.deltaY);
+    }
+  }, { passive: false });
+}
+makeWheelHandler(els.stage);
+makeWheelHandler(els.leftStage);
+
+// Pointer events on the canvas drive drawing. We ignore them when 2+ touches
+// are present (pinch-pan) by checking pointerType + a touch counter.
+let activeTouchCount = 0;
+els.stage.addEventListener('touchstart', e => { activeTouchCount = e.touches.length; }, { passive: true });
+els.stage.addEventListener('touchmove', e => { activeTouchCount = e.touches.length; }, { passive: true });
+els.stage.addEventListener('touchend', e => { activeTouchCount = e.touches.length; }, { passive: true });
+els.stage.addEventListener('touchcancel', e => { activeTouchCount = e.touches.length; }, { passive: true });
+
 els.canvas.addEventListener('pointerdown', e => {
   if (!roundActive) return;
+  if (e.pointerType === 'touch' && activeTouchCount > 1) return;
   e.preventDefault();
   els.canvas.setPointerCapture(e.pointerId);
   drawing = true;
-  // New stroke invalidates redo (mirrors typical drawing-app behavior).
   redoStack = [];
   applyTool();
-  const p = pointerPos(e);
+  const p = pointerPosContent(e.clientX, e.clientY);
   activeStroke = {
     style: currentToolStyle(),
     width: currentToolWidth(),
@@ -350,8 +528,13 @@ els.canvas.addEventListener('pointerdown', e => {
 });
 els.canvas.addEventListener('pointermove', e => {
   if (!drawing || !activeStroke) return;
+  if (e.pointerType === 'touch' && activeTouchCount > 1) {
+    // A second finger landed — abandon current stroke; pinch handler took over.
+    drawing = false;
+    return;
+  }
   e.preventDefault();
-  const p = pointerPos(e);
+  const p = pointerPosContent(e.clientX, e.clientY);
   const last = activeStroke.points[activeStroke.points.length - 1];
   activeStroke.points.push(p);
   drawSegment(last, p, activeStroke);
@@ -532,6 +715,8 @@ function setScore(score) {
 }
 
 function showOverlay() {
+  // Reset zoom so the comparison overlay lines up with the unscaled canvas.
+  resetView();
   if (resultImgEl) resultImgEl.remove();
   resultImgEl = document.createElement('img');
   resultImgEl.src = currentSrc;
@@ -556,20 +741,15 @@ function clearResult() {
 }
 
 window.addEventListener('resize', () => {
-  const oldW = els.canvas.clientWidth;
-  const oldH = els.canvas.clientHeight;
+  const old = baseSize;
   fitCanvasToImage();
-  const newW = els.canvas.clientWidth;
-  const newH = els.canvas.clientHeight;
-  if (oldW > 0 && oldH > 0 && (oldW !== newW || oldH !== newH)) {
-    const sx = newW / oldW, sy = newH / oldH;
-    for (const s of strokes) {
-      for (const p of s.points) { p.x *= sx; p.y *= sy; }
-    }
-    for (const s of redoStack) {
-      for (const p of s.points) { p.x *= sx; p.y *= sy; }
-    }
+  if (old.w > 0 && old.h > 0 && (old.w !== baseSize.w || old.h !== baseSize.h)) {
+    const sx = baseSize.w / old.w, sy = baseSize.h / old.h;
+    for (const s of strokes) for (const p of s.points) { p.x *= sx; p.y *= sy; }
+    for (const s of redoStack) for (const p of s.points) { p.x *= sx; p.y *= sy; }
   }
+  // Resizing the layout invalidates the current pan position; safer to reset.
+  resetView();
   redrawAllStrokes();
   positionOverlay();
 });
@@ -616,6 +796,7 @@ els.penBtn.addEventListener('click', () => setTool('pen'));
 els.pencilBtn.addEventListener('click', () => setTool('pencil'));
 els.undoBtn.addEventListener('click', undo);
 els.redoBtn.addEventListener('click', redo);
+els.resetZoomBtn.addEventListener('click', resetView);
 document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
     e.preventDefault();
