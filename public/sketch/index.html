@@ -128,6 +128,12 @@
   <button id="submitBtn" class="primary">Submit</button>
   <button id="timerToggle" class="toggle on">Timer</button>
   <button id="traceToggle" class="toggle">Trace</button>
+  <span style="border-left:1px solid var(--border); height:1.6rem; margin:0 .2rem"></span>
+  <button id="penBtn"    class="toggle on">Pen</button>
+  <button id="pencilBtn" class="toggle">Pencil</button>
+  <span style="border-left:1px solid var(--border); height:1.6rem; margin:0 .2rem"></span>
+  <button id="undoBtn" disabled>Undo</button>
+  <button id="redoBtn" disabled>Redo</button>
   <div class="grow"></div>
   <div id="score">—</div>
 </header>
@@ -169,20 +175,31 @@ const els = {
   submitBtn: document.getElementById('submitBtn'),
   timerToggle: document.getElementById('timerToggle'),
   traceToggle: document.getElementById('traceToggle'),
+  penBtn: document.getElementById('penBtn'),
+  pencilBtn: document.getElementById('pencilBtn'),
+  undoBtn: document.getElementById('undoBtn'),
+  redoBtn: document.getElementById('redoBtn'),
 };
 
 let manifest = [];
 let currentSrc = '';
 let ctx = els.canvas.getContext('2d');
 let drawing = false;
-let lastP = null;
-let strokeCount = 0;
 let timerId = null;
 let endsAt = 0;
 let roundActive = false;
 let resultImgEl = null;
 let timerEnabled = true;
 let traceEnabled = false;
+let tool = 'pen';      // 'pen' or 'pencil'
+let baseLineWidth = 3; // recomputed on resize
+
+// Undo/redo: each stroke is { style, width, points: [{x,y},...] } in CSS px.
+// On every change we redraw all strokes from scratch, which keeps the model
+// simple and the iPad-sized canvases fast enough.
+let strokes = [];
+let redoStack = [];
+let activeStroke = null;
 
 // ---------- Block iOS zoom gestures ----------
 // Safari ignores `user-scalable=no` since iOS 10, so we have to actively
@@ -235,15 +252,31 @@ function fitCanvasToImage() {
   ctx.clearRect(0, 0, cssW, cssH);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.strokeStyle = '#222';
-  ctx.lineWidth = Math.max(2, Math.round(Math.min(cssW, cssH) * STROKE_FRAC));
+  baseLineWidth = Math.max(2, Math.round(Math.min(cssW, cssH) * STROKE_FRAC));
+  applyTool();
   img.style.width = cssW + 'px';
   img.style.height = cssH + 'px';
 }
 
+function applyTool() {
+  ctx.strokeStyle = currentToolStyle();
+  ctx.lineWidth = currentToolWidth();
+}
+function currentToolStyle() {
+  return tool === 'pencil' ? 'rgba(70, 70, 70, 0.35)' : '#222';
+}
+function currentToolWidth() {
+  return tool === 'pencil'
+    ? Math.max(2, Math.round(baseLineWidth * 1.4))
+    : baseLineWidth;
+}
+
 function startRound() {
   clearResult();
-  strokeCount = 0;
+  strokes = [];
+  redoStack = [];
+  activeStroke = null;
+  updateUndoButtons();
   setScore(null);
   currentSrc = pickRandom();
   els.target.onload = () => {
@@ -302,26 +335,30 @@ els.canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
   els.canvas.setPointerCapture(e.pointerId);
   drawing = true;
-  strokeCount++;
+  // New stroke invalidates redo (mirrors typical drawing-app behavior).
+  redoStack = [];
+  applyTool();
   const p = pointerPos(e);
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y);
-  ctx.lineTo(p.x + 0.01, p.y + 0.01);
-  ctx.stroke();
-  lastP = p;
+  activeStroke = {
+    style: currentToolStyle(),
+    width: currentToolWidth(),
+    points: [p],
+  };
+  strokes.push(activeStroke);
+  drawDot(p, activeStroke);
+  updateUndoButtons();
 });
 els.canvas.addEventListener('pointermove', e => {
-  if (!drawing) return;
+  if (!drawing || !activeStroke) return;
   e.preventDefault();
   const p = pointerPos(e);
-  ctx.beginPath();
-  ctx.moveTo(lastP.x, lastP.y);
-  ctx.lineTo(p.x, p.y);
-  ctx.stroke();
-  lastP = p;
+  const last = activeStroke.points[activeStroke.points.length - 1];
+  activeStroke.points.push(p);
+  drawSegment(last, p, activeStroke);
 });
 function endStroke(e) {
   drawing = false;
+  activeStroke = null;
   if (els.canvas.hasPointerCapture && e.pointerId !== undefined && els.canvas.hasPointerCapture(e.pointerId)) {
     els.canvas.releasePointerCapture(e.pointerId);
   }
@@ -329,6 +366,58 @@ function endStroke(e) {
 els.canvas.addEventListener('pointerup', endStroke);
 els.canvas.addEventListener('pointercancel', endStroke);
 els.canvas.addEventListener('pointerleave', endStroke);
+
+function drawSegment(a, b, stroke) {
+  ctx.strokeStyle = stroke.style;
+  ctx.lineWidth = stroke.width;
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+}
+function drawDot(p, stroke) {
+  drawSegment(p, { x: p.x + 0.01, y: p.y + 0.01 }, stroke);
+}
+function redrawAllStrokes() {
+  const cssW = els.canvas.clientWidth;
+  const cssH = els.canvas.clientHeight;
+  ctx.clearRect(0, 0, cssW, cssH);
+  for (const s of strokes) {
+    if (s.points.length === 0) continue;
+    ctx.strokeStyle = s.style;
+    ctx.lineWidth = s.width;
+    ctx.beginPath();
+    ctx.moveTo(s.points[0].x, s.points[0].y);
+    if (s.points.length === 1) {
+      // Single-point tap: draw a tiny segment so it's visible.
+      ctx.lineTo(s.points[0].x + 0.01, s.points[0].y + 0.01);
+    } else {
+      for (let i = 1; i < s.points.length; i++) {
+        ctx.lineTo(s.points[i].x, s.points[i].y);
+      }
+    }
+    ctx.stroke();
+  }
+  // Restore current tool state so the next live stroke uses the right style.
+  applyTool();
+}
+
+function undo() {
+  if (!strokes.length) return;
+  redoStack.push(strokes.pop());
+  redrawAllStrokes();
+  updateUndoButtons();
+}
+function redo() {
+  if (!redoStack.length) return;
+  strokes.push(redoStack.pop());
+  redrawAllStrokes();
+  updateUndoButtons();
+}
+function updateUndoButtons() {
+  els.undoBtn.disabled = strokes.length === 0;
+  els.redoBtn.disabled = redoStack.length === 0;
+}
 
 // ---------- Scoring ----------
 function buildMask(srcCanvas) {
@@ -467,7 +556,21 @@ function clearResult() {
 }
 
 window.addEventListener('resize', () => {
+  const oldW = els.canvas.clientWidth;
+  const oldH = els.canvas.clientHeight;
   fitCanvasToImage();
+  const newW = els.canvas.clientWidth;
+  const newH = els.canvas.clientHeight;
+  if (oldW > 0 && oldH > 0 && (oldW !== newW || oldH !== newH)) {
+    const sx = newW / oldW, sy = newH / oldH;
+    for (const s of strokes) {
+      for (const p of s.points) { p.x *= sx; p.y *= sy; }
+    }
+    for (const s of redoStack) {
+      for (const p of s.points) { p.x *= sx; p.y *= sy; }
+    }
+  }
+  redrawAllStrokes();
   positionOverlay();
 });
 
@@ -502,6 +605,23 @@ els.submitBtn.addEventListener('click', () => {
 });
 els.timerToggle.addEventListener('click', () => setTimerEnabled(!timerEnabled));
 els.traceToggle.addEventListener('click', () => setTraceEnabled(!traceEnabled));
+
+function setTool(name) {
+  tool = name;
+  els.penBtn.classList.toggle('on', name === 'pen');
+  els.pencilBtn.classList.toggle('on', name === 'pencil');
+  applyTool();
+}
+els.penBtn.addEventListener('click', () => setTool('pen'));
+els.pencilBtn.addEventListener('click', () => setTool('pencil'));
+els.undoBtn.addEventListener('click', undo);
+els.redoBtn.addEventListener('click', redo);
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+    e.preventDefault();
+    if (e.shiftKey) redo(); else undo();
+  }
+});
 
 (async () => {
   await loadManifest();
