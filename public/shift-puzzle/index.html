@@ -297,74 +297,23 @@
 <div class="wrap">
   <div class="controls-wrap">
     <div class="controls">
-      <select id="difficulty" aria-label="Difficulty">
-        <option value="L1">1 · Warm-up</option>
-        <option value="L2">2 · Warm-up + par</option>
-        <option value="L3">3 · Busier 3×3</option>
-        <option value="L4">4 · Window, free</option>
-        <option value="L5">5 · Window + par</option>
-        <option value="L6">6 · No spares</option>
-        <option value="L7">7 · Full house</option>
-        <option value="L8">8 · Facing, free</option>
-        <option value="L9">9 · Facing + par</option>
-        <option value="L10">10 · Facing window</option>
-        <option value="L11">11 · Facing house</option>
-        <option value="L12">12 · Picture</option>
-        <option value="L13">13 · Picture, hidden</option>
-        <option value="L14">14 · Picture, turning</option>
-        <option value="L15">15 · Picture, turning + hidden</option>
-        <optgroup label="Candy (endless)">
-          <option value="C1">Candy · colour</option>
-          <option value="C2">Candy · facing</option>
-          <option value="C3">Candy · along-line</option>
-          <option value="C4">Candy · bad candies</option>
-          <option value="C5">Candy · blanks</option>
-          <option value="C6">Candy · shapes (easy)</option>
-          <option value="C7">Candy · shapes</option>
-          <option value="C8">Candy · shapes + axis</option>
-          <option value="C9">Candy · two shapes</option>
-        </optgroup>
-        <option value="Custom">Custom…</option>
+      <select id="difficulty" aria-label="Mode">
+        <option value="S1">Shapes (easy)</option>
+        <option value="S2">Shapes</option>
+        <option value="S3">Shapes + axis (partial)</option>
+        <option value="S4">Shapes + axis</option>
+        <option value="S5">Two shapes</option>
       </select>
-      <button id="customToggle" class="icon-btn" aria-label="Customize" title="Customize">&#9881;</button>
       <div class="grow"></div>
       <button id="newBtn" class="primary">New board</button>
-    </div>
-
-    <div id="customPanel">
-      <div class="field">
-        <label for="rSize">Grid size</label>
-        <input type="range" id="rSize" min="3" max="5" step="1">
-        <span class="val" id="vSize"></span>
-      </div>
-      <div class="field">
-        <label for="rColors">Colours</label>
-        <input type="range" id="rColors" min="2" max="6" step="1">
-        <span class="val" id="vColors"></span>
-      </div>
-      <div class="field">
-        <label for="rCells">Coloured cells</label>
-        <input type="range" id="rCells" min="2" max="20" step="1">
-        <span class="val" id="vCells"></span>
-      </div>
-      <div class="field">
-        <label for="rDepth">Difficulty</label>
-        <input type="range" id="rDepth" min="3" max="40" step="1">
-        <span class="val" id="vDepth"></span>
-      </div>
     </div>
   </div>
 
   <div class="stats">
-    <span><span id="statSolvedLabel">Solved</span> <b id="statSolved">0</b></span>
-    <span><span id="statRateLabel">Rate</span> <b id="statRate">—</b></span>
-    <span id="statAvgWrap"><span id="statAvgLabel">Avg</span> <b id="statAvg">—</b></span>
+    <span><span id="statSolvedLabel">Best</span> <b id="statSolved">0</b></span>
+    <span><span id="statRateLabel">Runs</span> <b id="statRate">—</b></span>
+    <span id="statAvgWrap" style="display:none"><span id="statAvgLabel">Avg</span> <b id="statAvg">—</b></span>
     <span class="reset-stats" id="resetStats">reset stats</span>
-  </div>
-
-  <div class="target-block" id="targetBlock">
-    <div class="label">Target</div>
-    <div class="board" id="targetBoard"></div>
   </div>
 
   <!-- Shape-mode targets: the shape to make now + a preview of the next one.
@@ -408,8 +357,8 @@
     </div>
   </div>
 
-  <div class="moves-line" id="movesLine"><span id="movesLabel">Moves </span><b class="used" id="moveUsed">0</b> <span class="par" id="parSpan"><span id="parLabel">/ par </span><b id="movePar">—</b></span></div>
-  <div class="hint idle" id="hint">Reach the target within par.</div>
+  <div class="moves-line" id="movesLine"><span id="movesLabel">Score </span><b class="used" id="moveUsed">0</b> <span class="par" id="parSpan"><span id="parLabel"> · moves </span><b id="movePar">—</b></span></div>
+  <div class="hint idle" id="hint">Form the shape to clear it and earn moves.</div>
 
   <div class="actions">
     <button id="resetBtn">Reset</button>
@@ -417,272 +366,15 @@
 
   <details class="help">
     <summary>How to play</summary>
-    <p>Make your board match the <b>Target</b> above. On bigger boards only the <b>outlined window</b> has to match — the rest is free space to work in.</p>
-    <p>The four <b>edge arrows</b> shift the whole board one step — cells that fall off one side wrap around to the other.</p>
-    <p>The four <b>corner buttons</b> shift the cells one step <i>around each ring</i>: the <b>right</b> corners move them clockwise (&#8635;), the <b>left</b> corners anticlockwise (&#8634;). The centre cell of an odd grid never moves.</p>
-    <p>Each board has a <b>par</b> — a few moves above the shortest possible solution. Reach the target within par to solve it. Taking the move that <i>reverses</i> your last one steps you back and gives the move back (it's <b>highlighted</b>), so exploring a dead end costs nothing if you undo it.</p>
-    <p>From level 8 on, pieces carry a <b>facing</b> (the white arrow) that must match the target too. A piece turns 90&deg; only as it <i>leaves a corner</i> of its ring; sliding it along a straight edge, or into a corner, leaves it pointing the same way. (One full lap is four corners, a complete turn.) The centre piece spins in place with every ring move.</p>
-    <p>From level 12 the cells are tiles of a <b>picture</b> to reassemble; the turning variants also need each tile the right way up. On the <b>hidden</b> levels the target is a <b>?</b> until you solve it.</p>
-    <p>The <b>Candy</b> modes are an endless match game: fill a whole row or column with matching candies to clear them, then everything falls and new candies drop in. You have a limited number of <b>moves</b> — each move spends one, and each cleared line earns several back, so you have to keep clearing or you run out and the run ends. The <i>facing</i> and <i>along-line</i> variants also need the candies' arrows to agree. <b>Bad candies</b> (dark) can't be matched and you lose if three ever line up; <b>blanks</b> (grey) are inert clutter. The reverse move (highlighted) takes back a move that didn't clear anything; Reset starts a fresh run.</p>
-    <p>The <b>shapes</b> candy modes show a coloured shape to <b>Make</b> (plus a <b>Next</b> preview so you can plan ahead). Form that shape in that colour <i>anywhere</i> it fits on the board and it clears, earns moves, and the next target slides in. The <i>+ axis</i> variant also needs every cell's <b>bar</b> to lie the same way the target shows — all upright or all sideways. The <b>two shapes</b> mode shows two different-colour shapes you must form on the board <i>at the same time</i> to clear together. The shapes are always built from colours you actually have, so they're always possible.</p>
+    <p>Form the coloured shape shown under <b>Make</b> anywhere it fits on the board. When you do, those candies clear, you earn moves, and the <b>Next</b> shape slides in. It's endless — chase a high score.</p>
+    <p>The four <b>edge arrows</b> shift the whole board one step — candies that fall off one side wrap around to the other.</p>
+    <p>The four <b>corner buttons</b> shift the candies one step <i>around each ring</i>: the <b>right</b> corners move them clockwise (&#8635;), the <b>left</b> corners anticlockwise (&#8634;). The centre candy of the 3×3 stays put.</p>
+    <p>You have a limited number of <b>moves</b>: each move spends one and each shape you clear earns several back, so you have to keep clearing or the run ends. The move that <i>reverses</i> your last one is <b>highlighted</b> — tap it to undo (you get the move back); you can keep undoing back to your last clear, or <b>Reset</b> for a fresh run.</p>
+    <p>The <b>+ axis</b> modes also require each candy's <b>bar</b> to lie the way the target shows — all upright or all sideways. A candy turns 90&deg; only as it <i>leaves a corner</i> of its ring (sliding along a straight edge keeps its facing; the centre spins with every ring move). In the <b>partial</b> variant only the cells that show a bar are constrained — the rest take any facing.</p>
+    <p>The <b>two shapes</b> mode shows two different-colour shapes you must form on the board <i>at the same time</i> to clear together. Every target is built from the colours actually on your board, so it's always achievable.</p>
     <p>Keyboard: arrows shift, <b>Q</b>/<b>E</b> ring-shift, <b>R</b> reset, <b>N</b> new board.</p>
   </details>
 </div>
-
-<!-- Level generator. Runs in a Web Worker so the bidirectional-BFS solve
-     (which proves each board's exact optimal length) never blocks the UI. -->
-<script id="workerSrc" type="text/js-worker">
-function ringsOf(n) {
-  const rings = [];
-  for (let k = 0; k < Math.ceil(n / 2); k++) {
-    const lo = k, hi = n - 1 - k;
-    if (lo === hi) { rings.push([lo * n + lo]); continue; }
-    const r = [];
-    for (let c = lo; c <= hi; c++) r.push(lo * n + c);          // top, L->R
-    for (let rr = lo + 1; rr <= hi; rr++) r.push(rr * n + hi);  // right, T->B
-    for (let c = hi - 1; c >= lo; c--) r.push(hi * n + c);      // bottom, R->L
-    for (let rr = hi - 1; rr >= lo + 1; rr--) r.push(rr * n + lo); // left, B->T
-    rings.push(r);
-  }
-  return rings;
-}
-function buildPerms(n) {
-  const mk = f => { const p = new Int32Array(n * n); for (let i = 0; i < n * n; i++) p[i] = f(i); return p; };
-  const P = {};
-  P.U = mk(i => { const r = (i / n) | 0, c = i % n; return ((r + 1) % n) * n + c; });
-  P.D = mk(i => { const r = (i / n) | 0, c = i % n; return ((r - 1 + n) % n) * n + c; });
-  P.L = mk(i => { const r = (i / n) | 0, c = i % n; return r * n + (c + 1) % n; });
-  P.R = mk(i => { const r = (i / n) | 0, c = i % n; return r * n + (c - 1 + n) % n; });
-  const cw = mk(i => i), ccw = mk(i => i);
-  for (const ring of ringsOf(n)) {
-    const L = ring.length;
-    for (let j = 0; j < L; j++) {
-      cw[ring[(j + 1) % L]] = ring[j];   // CW: each cell moves one step forward along the ring
-      ccw[ring[j]] = ring[(j + 1) % L];  // CCW: the inverse
-    }
-  }
-  P.CW = cw; P.CCW = ccw;
-  return P;
-}
-// Cell encoding (unified for plain and oriented levels):
-//   0 = empty. Non-empty = 1 + colour*4 + orient, orient in 0..3 (0=up, 1=right,
-//   2=down, 3=left). Plain levels just keep orient 0 throughout.
-function decC(v) { return v === 0 ? -1 : ((v - 1) >> 2); }
-function decO(v) { return v === 0 ? -1 : ((v - 1) & 3); }
-function rotCell(v, d) { return v === 0 ? 0 : 1 + decC(v) * 4 + (((decO(v) + d) % 4 + 4) % 4); }
-
-// turnMask[i] = 1 if a ring move should turn the oriented piece at cell i.
-// A piece turns only when it rounds a CORNER of its ring: every square ring has
-// exactly 4 corners, so one full lap = 4 turns = 360 degrees at any board size.
-// (Marking the non-corner "edge" cells instead would over-rotate — e.g. a 4x4
-// outer ring has 8 edge cells, giving a wrong 720 degrees per lap.) The lone
-// centre of an odd grid is a degenerate corner (lo === hi), so it's marked too
-// and spins in place every move. CW reads the mask at the destination, CCW at
-// the source, so for any mask CW/CCW stay exact inverses.
-function edgeMask(n) {
-  const e = new Uint8Array(n * n);
-  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
-    const k = Math.min(r, c, n - 1 - r, n - 1 - c), lo = k, hi = n - 1 - k;
-    const corner = (r === lo || r === hi) && (c === lo || c === hi);
-    e[r * n + c] = corner ? 1 : 0;             // corners (incl. odd-grid centre) turn
-  }
-  return e;
-}
-
-// Apply a move by name. Translations (U/D/L/R) only permute positions. Ring
-// moves (CW/CCW) also turn oriented pieces, but only as a piece leaves a CORNER
-// of its ring: the piece landing at cell i came from perm[i], so CW turns +90
-// when the SOURCE (perm[i]) is a corner; CCW turns -90 when the DESTINATION (i)
-// is a corner. Reading opposite cells per direction keeps them exact inverses.
-// (edge[] marks corners; see edgeMask.) When `oriented` is false this is a pure
-// permutation.
-function applyMove(state, move, P, edge, oriented) {
-  const perm = P[move], L = state.length;
-  const out = new Uint8Array(L);
-  if (oriented && move === 'CW') {
-    for (let i = 0; i < L; i++) out[i] = rotCell(state[perm[i]], edge[perm[i]] ? 1 : 0);
-  } else if (oriented && move === 'CCW') {
-    for (let i = 0; i < L; i++) out[i] = rotCell(state[perm[i]], edge[i] ? -1 : 0);
-  } else {
-    for (let i = 0; i < L; i++) out[i] = state[perm[i]];
-  }
-  return out;
-}
-const keyOf = s => String.fromCharCode.apply(null, s);
-
-const MOVES = ['U', 'D', 'L', 'R', 'CW', 'CCW'];
-
-// Bidirectional BFS — exact shortest distance on this undirected, unweighted
-// move graph. Expands the smaller frontier one level at a time and stops once
-// the two explored radii can no longer beat the best meeting cost. Valid for
-// oriented levels too: the oriented move set is still closed under inverses
-// (CCW inverts CW), so the graph stays undirected.
-function biBFS(S, T, P, edge, oriented, cap) {
-  const kS = keyOf(S), kT = keyOf(T);
-  if (kS === kT) return { dist: 0 };
-  let fF = new Map([[kS, S]]), fB = new Map([[kT, T]]);
-  const dF = new Map([[kS, 0]]), dB = new Map([[kT, 0]]);
-  let best = Infinity, nodes = 2, rF = 0, rB = 0;
-  while (fF.size && fB.size && rF + rB < best) {
-    if (nodes > cap) return { dist: best === Infinity ? null : best, capped: true };
-    const expandF = fF.size <= fB.size;
-    const cur = expandF ? fF : fB, dCur = expandF ? dF : dB, dOther = expandF ? dB : dF;
-    const next = new Map();
-    if (expandF) rF++; else rB++;
-    for (const st of cur.values()) {
-      const du = dCur.get(keyOf(st));
-      for (let mi = 0; mi < 6; mi++) {
-        const ns = applyMove(st, MOVES[mi], P, edge, oriented), k = keyOf(ns);
-        if (dCur.has(k)) continue;
-        dCur.set(k, du + 1); next.set(k, ns); nodes++;
-        if (dOther.has(k)) { const tot = du + 1 + dOther.get(k); if (tot < best) best = tot; }
-      }
-    }
-    if (expandF) fF = next; else fB = next;
-  }
-  return { dist: best === Infinity ? null : best };
-}
-
-function randTarget(n, colors, cells, oriented) {
-  const s = new Uint8Array(n * n);
-  const idx = []; for (let i = 0; i < n * n; i++) idx.push(i);
-  for (let i = idx.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
-  const count = Math.min(cells, n * n - 1);
-  const o = () => oriented ? (Math.random() * 4) | 0 : 0;
-  for (let i = 0; i < count; i++) s[idx[i]] = 1 + ((Math.random() * colors) | 0) * 4 + o();
-  // make sure at least two distinct colours appear when possible
-  if (colors > 1 && count > 1) {
-    let allSame = true; const first = decC(s[idx[0]]);
-    for (let i = 1; i < count; i++) if (decC(s[idx[i]]) !== first) { allSame = false; break; }
-    if (allSame) s[idx[0]] = 1 + (((first + 1) % colors) * 4) + decO(s[idx[0]]);
-  }
-  return s;
-}
-
-const INV = { U: 'D', D: 'U', L: 'R', R: 'L', CW: 'CCW', CCW: 'CW' };
-const SHIFTS = ['U', 'D', 'L', 'R'], ALL = ['U', 'D', 'L', 'R', 'CW', 'CCW'];
-
-// Scramble that avoids immediately undoing the previous move and guarantees a
-// mix of at least one shift and one ring move — both push the true minimum up.
-function scramble(T, P, edge, oriented, K) {
-  for (let attempt = 0; attempt < 20; attempt++) {
-    let s = T, last = null, nShift = 0, nRing = 0;
-    for (let i = 0; i < K; i++) {
-      let m; do { m = ALL[(Math.random() * 6) | 0]; } while (last && m === INV[last]);
-      if (SHIFTS.indexOf(m) >= 0) nShift++; else nRing++;
-      s = applyMove(s, m, P, edge, oriented); last = m;
-    }
-    if (nShift >= 1 && nRing >= 1 && keyOf(s) !== keyOf(T)) return s;
-  }
-  return null;
-}
-
-// Build a "solved" board: the wd*wd goal pattern in the centred window, plus
-// `decoys` spare pieces (in the target's colours) scattered in the workspace
-// cells outside the window. Scrambles are generated from this board, so the
-// decoys are just clutter the player routes around — they're never part of the
-// goal test. The rest is empty.
-function placeWindow(n, wd, off, goal, decoys, colors, oriented) {
-  const b = new Uint8Array(n * n);
-  const inside = new Set();
-  for (let i = 0; i < wd; i++) for (let j = 0; j < wd; j++) {
-    const idx = (off + i) * n + (off + j);
-    b[idx] = goal[i * wd + j];
-    inside.add(idx);
-  }
-  if (decoys > 0) {
-    const ws = [];
-    for (let i = 0; i < n * n; i++) if (!inside.has(i)) ws.push(i);
-    for (let i = ws.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; const t = ws[i]; ws[i] = ws[j]; ws[j] = t; }
-    const k = Math.min(decoys, ws.length);
-    for (let d = 0; d < k; d++) b[ws[d]] = 1 + ((Math.random() * colors) | 0) * 4 + (oriented ? (Math.random() * 4) | 0 : 0);
-  }
-  return b;
-}
-
-// Forward BFS to the first state whose *window* matches the goal pattern (the
-// cells outside the window are free workspace). The goal is a SET of states, so
-// bidirectional BFS doesn't apply here — this is exact but must stay shallow,
-// which the presets ensure. Returns null past the node cap so a too-deep
-// candidate is cheaply rejected.
-function fwdWindowBFS(start, goal, P, edge, oriented, n, wd, off, cap) {
-  const idx = [];
-  for (let i = 0; i < wd; i++) for (let j = 0; j < wd; j++) idx.push([(off + i) * n + (off + j), i * wd + j]);
-  const matches = b => { for (let k = 0; k < idx.length; k++) if (b[idx[k][0]] !== goal[idx[k][1]]) return false; return true; };
-  if (matches(start)) return { dist: 0 };
-  let front = [start];
-  const seen = new Set([keyOf(start)]);
-  let d = 0, nodes = 1;
-  while (front.length) {
-    d++;
-    const next = [];
-    for (const st of front) {
-      for (let mi = 0; mi < 6; mi++) {
-        const ns = applyMove(st, MOVES[mi], P, edge, oriented), k = keyOf(ns);
-        if (seen.has(k)) continue;
-        nodes++;
-        if (matches(ns)) return { dist: d };
-        seen.add(k); next.push(ns);
-        if (nodes > cap) return { dist: null, capped: true };
-      }
-    }
-    front = next;
-  }
-  return { dist: null };
-}
-
-// Best-of-A with early-accept: a fixed scramble length often collapses to a
-// trivially small true minimum, so we generate several candidates and keep the
-// one with the largest *proven* optimal length, accepting early once it clears
-// the difficulty floor.
-//
-// A picture board is just full-board mode where every cell is a distinct tile.
-// The "assembled" goal has tile i in cell i, upright: enc = 1 + i*4 + 0.
-function pictureGoal(n) {
-  const b = new Uint8Array(n * n);
-  for (let i = 0; i < n * n; i++) b[i] = 1 + i * 4;
-  return b;
-}
-
-// wd === n  -> the goal is the whole board: exact optimum via bidirectional BFS.
-// wd <  n   -> the goal is a centred wd*wd window: exact optimum via forward BFS.
-// picture  -> full board, goal is the assembled image (tile i home & upright).
-function generate(n, wd, colors, cells, decoys, oriented, picture, K, floor, A, cap) {
-  const full = wd >= n || picture;
-  const off = (n - wd) >> 1;
-  const P = buildPerms(n), edge = edgeMask(n);
-  const makeGoal = () => picture ? pictureGoal(n) : randTarget(wd, colors, cells, oriented);
-  const solveOf = (S, goalBoard, goalPat) => full
-    ? biBFS(S, goalBoard, P, edge, oriented, cap)
-    : fwdWindowBFS(S, goalPat, P, edge, oriented, n, wd, off, cap);
-  for (let outer = 0; outer < 40; outer++) {
-    const goalPat = makeGoal();   // wd*wd target pattern, or assembled picture
-    const goalBoard = full ? goalPat : placeWindow(n, wd, off, goalPat, decoys, colors, oriented);
-    let best = null;
-    for (let a = 0; a < A; a++) {
-      const S = scramble(goalBoard, P, edge, oriented, K);
-      if (!S) continue;
-      const res = solveOf(S, goalBoard, goalPat);
-      if (res.capped || res.dist == null) continue;
-      if (res.dist >= 1 && (!best || res.dist > best.dist)) best = { S: S, dist: res.dist };
-      if (best && best.dist >= floor) break;
-    }
-    if (best) return { start: best.S, goal: goalPat, min: best.dist };
-  }
-  // Extreme fallback (pathological settings): a short scramble we can always solve.
-  const goalPat = makeGoal();
-  const goalBoard = full ? goalPat : placeWindow(n, wd, off, goalPat, decoys, colors, oriented);
-  const S = scramble(goalBoard, P, edge, oriented, Math.max(2, Math.min(K, 6))) || applyMove(goalBoard, 'CW', P, edge, oriented);
-  const res = full ? biBFS(S, goalBoard, P, edge, oriented, cap * 6) : fwdWindowBFS(S, goalPat, P, edge, oriented, n, wd, off, cap * 4);
-  return { start: S, goal: goalPat, min: res.dist && res.dist >= 1 ? res.dist : 1 };
-}
-
-onmessage = function (e) {
-  const d = e.data;
-  const r = generate(d.n, d.wd, d.colors, d.cells, d.decoys, !!d.oriented, !!d.picture, d.K, d.floor, d.A, d.cap);
-  postMessage({ id: d.id, start: Array.from(r.start), goal: Array.from(r.goal), min: r.min });
-};
-</script>
 
 <script>
 "use strict";
@@ -700,175 +392,28 @@ document.addEventListener('touchend', e => {
 const PALETTE = ['#d97757', '#4a8fae', '#6aa84f', '#e0b341', '#9b6cc4', '#d65a7e'];
 const INV = { U: 'D', D: 'U', L: 'R', R: 'L', CW: 'CCW', CCW: 'CW' };
 
-/* ---- picture images ----
-   Picture levels slice an Image into n*n tiles. Source images come from
-   pics/manifest.json (a JSON array of filenames relative to pics/); if that's
-   missing or empty we fall back to procedurally drawn patterns, so the feature
-   works with zero assets and automatically uses your images once you add them.
-   Drop files in public/shift-puzzle/pics/ and list them in pics/manifest.json:
-     ["fish.jpg", "wave.png"] */
-const PICS = { images: [], ready: false };
-
-function loadManifestImages() {
-  return fetch('pics/manifest.json')
-    .then(r => r.ok ? r.json() : [])
-    .then(list => Promise.all((Array.isArray(list) ? list : []).map(name => new Promise(res => {
-      const img = new Image();
-      img.onload = () => res(img);
-      img.onerror = () => res(null);
-      img.src = 'pics/' + name;
-    }))))
-    .then(imgs => imgs.filter(Boolean))
-    .catch(() => []);
-}
-
-// Procedural fallbacks, built as a grid*grid layout of bold, fully distinct
-// tiles so the assembled picture is obvious and every individual tile is easy
-// to tell apart (vivid colour block + a large glyph that also encodes its home
-// position). Designed for the picture levels' 3x3 grid.
-function makeProceduralImages(grid) {
-  const k = grid || 3, S = 120 * k;
-  const t = S / k;
-  const mk = draw => { const cv = document.createElement('canvas'); cv.width = cv.height = S; draw(cv.getContext('2d')); const img = new Image(); img.src = cv.toDataURL(); return img; };
-  // strong, well-separated hues; one per tile
-  const baseHues = [[5, 32, 50, 145, 175, 200, 265, 305, 340], [210, 250, 285, 320, 355, 25, 60, 130, 160]];
-  const drawGrid = (g, hues, glyph, bg) => {
-    g.fillStyle = bg; g.fillRect(0, 0, S, S);
-    for (let r = 0; r < k; r++) for (let c = 0; c < k; c++) {
-      const id = r * k + c;
-      g.fillStyle = `hsl(${hues[id % hues.length]} 70% 52%)`;
-      g.fillRect(c * t + 3, r * t + 3, t - 6, t - 6);
-      glyph(g, c * t, r * t, id, r, c);
-    }
-  };
-  const imgs = [];
-  // 1) bold colour blocks with a big directional chevron per tile
-  imgs.push(mk(g => drawGrid(g, baseHues[0], (g, x, y, id, r, c) => {
-    g.fillStyle = 'rgba(255,255,255,0.9)';
-    const cx = x + t / 2, cy = y + t / 2, s = t * 0.22;
-    const dir = id % 4; // chevron points a different way per tile
-    g.save(); g.translate(cx, cy); g.rotate(dir * Math.PI / 2);
-    g.beginPath(); g.moveTo(0, -s); g.lineTo(s, s); g.lineTo(0, s * 0.4); g.lineTo(-s, s); g.closePath(); g.fill();
-    g.restore();
-  }, '#2a2a2a')));
-  // 2) colour blocks with concentric corner arcs (varied focal corner)
-  imgs.push(mk(g => drawGrid(g, baseHues[1], (g, x, y, id, r, c) => {
-    g.strokeStyle = 'rgba(255,255,255,0.85)'; g.lineWidth = t * 0.08;
-    const corners = [[x + t * 0.15, y + t * 0.15], [x + t * 0.85, y + t * 0.15], [x + t * 0.15, y + t * 0.85], [x + t * 0.85, y + t * 0.85]];
-    const [ox, oy] = corners[id % 4];
-    for (let rr = t * 0.25; rr < t * 0.8; rr += t * 0.18) { g.beginPath(); g.arc(ox, oy, rr, 0, 7); g.stroke(); }
-  }, '#f5f3ef')));
-  // 3) high-contrast diagonal split per tile, two analogous hues
-  imgs.push(mk(g => {
-    g.fillStyle = '#1a1a1a'; g.fillRect(0, 0, S, S);
-    for (let r = 0; r < k; r++) for (let c = 0; c < k; c++) {
-      const id = r * k + c, h = baseHues[0][id % 9];
-      const x = c * t, y = r * t;
-      g.fillStyle = `hsl(${h} 72% 55%)`; g.beginPath(); g.moveTo(x + 3, y + 3); g.lineTo(x + t - 3, y + 3); g.lineTo(x + 3, y + t - 3); g.closePath(); g.fill();
-      g.fillStyle = `hsl(${h} 60% 32%)`; g.beginPath(); g.moveTo(x + t - 3, y + 3); g.lineTo(x + t - 3, y + t - 3); g.lineTo(x + 3, y + t - 3); g.closePath(); g.fill();
-    }
-  }));
-  return imgs;
-}
-
-function initPics() {
-  return loadManifestImages().then(imgs => {
-    PICS.images = (imgs && imgs.length) ? imgs : makeProceduralImages(3);
-    PICS.ready = true;
-  });
-}
-function pickImage() {
-  if (!PICS.images.length) PICS.images = makeProceduralImages(3);
-  return PICS.images[(Math.random() * PICS.images.length) | 0];
-}
-
-/* Difficulty presets — a 7-step spectrum that introduces one idea at a time.
-   size    = full board the player edits
-   win     = side of the centred goal window (win === size means the whole board
-             is the goal; win < size means only that centred region must match,
-             and the rest is free workspace)
-   colors  = number of colours; cells = coloured cells in the goal pattern
-   decoys  = extra "spare" pieces (in the target colours) scattered in the
-             workspace outside the window — clutter you route around or park
-   limited = whether a par move-limit applies (false = play freely, no limit)
-   K       = scramble length; floor = optimal length to select for
-   A       = candidates per board; slack = par margin over the optimum
-
-   The ramp: 1 teaches the moves with no pressure, 2 adds par, 3 busies the 3x3.
-   4 introduces the window with decoys but no limit, 5 adds par, 6 removes the
-   decoys (so every piece must land), 7 adds colours and cells. Optimal bands
-   measured ~4,4,5.8,5.8,5.8,6.3,8; worst-case generation well under ~130ms. */
+/* Shape modes — an endless match game on a 3x3 board. Form the shown coloured
+   shape anywhere it fits and it clears, earns moves, and the next target slides
+   in. Targets are always generated from the colours actually on the board, so
+   they're always achievable. Shared fields:
+     match     'shape'  colour only | 'shapeA' axis-facing | 'dual' two-at-once
+     shapeMin/shapeMax  shape size bounds (2-tile pairs reserved for "easy")
+     partialAxis        (shapeA only) only SOME cells require an axis; the rest
+                        are colour-only wildcards — a mid-difficulty axis variant
+     moves/grant/moveCap  move economy: start with `moves`, each move -1, each
+                        clear +grant (capped); reach 0 and the run ends. */
 const DIFF = {
-  L1: { size: 3, win: 3, colors: 2, cells: 3, decoys: 0, limited: false, K: 8,  floor: 4, A: 4, slack: 4 },
-  L2: { size: 3, win: 3, colors: 2, cells: 3, decoys: 0, limited: true,  K: 8,  floor: 4, A: 4, slack: 4 },
-  L3: { size: 3, win: 3, colors: 3, cells: 5, decoys: 0, limited: true,  K: 10, floor: 5, A: 5, slack: 5 },
-  L4: { size: 4, win: 3, colors: 2, cells: 4, decoys: 2, limited: false, K: 10, floor: 5, A: 5, slack: 5 },
-  L5: { size: 4, win: 3, colors: 2, cells: 4, decoys: 2, limited: true,  K: 10, floor: 5, A: 5, slack: 5 },
-  L6: { size: 4, win: 3, colors: 2, cells: 4, decoys: 0, limited: true,  K: 11, floor: 6, A: 5, slack: 6 },
-  L7: { size: 4, win: 3, colors: 3, cells: 6, decoys: 0, limited: true,  K: 12, floor: 7, A: 5, slack: 7 },
-  // Oriented section (8+): pieces carry a facing that must also match the target.
-  // A piece turns 90 degrees only when a ring move carries it across an edge
-  // cell (not at corners/centre). Optimal bands measured ~6,7,7,8; generation
-  // kept fast (windowed-oriented uses forward BFS, so depth is held shallow).
-  L8: { size: 3, win: 3, colors: 2, cells: 3, decoys: 0, oriented: true, limited: false, K: 8,  floor: 5, A: 4, slack: 5 },
-  L9: { size: 3, win: 3, colors: 2, cells: 3, decoys: 0, oriented: true, limited: true,  K: 10, floor: 6, A: 5, slack: 5 },
-  L10:{ size: 4, win: 3, colors: 2, cells: 3, decoys: 0, oriented: true, limited: true,  K: 10, floor: 6, A: 5, slack: 6 },
-  L11:{ size: 4, win: 3, colors: 3, cells: 4, decoys: 0, oriented: true, limited: true,  K: 11, floor: 7, A: 5, slack: 7 },
-  // Picture section (12+): every cell is a distinct tile of an image; solved
-  // when the picture is reassembled. 'hideTarget' blanks the preview until you
-  // solve it. The rotating variants reuse the oriented mechanic, so tiles must
-  // come out upright too. Optimal bands measured ~6 (plain) / ~7 (oriented).
-  L12:{ size: 3, win: 3, picture: true, limited: true, K: 11, floor: 6, A: 6, slack: 6 },
-  L13:{ size: 3, win: 3, picture: true, hideTarget: true, limited: true, K: 11, floor: 6, A: 6, slack: 6 },
-  L14:{ size: 3, win: 3, picture: true, oriented: true, limited: true, K: 11, floor: 7, A: 6, slack: 7 },
-  L15:{ size: 3, win: 3, picture: true, oriented: true, hideTarget: true, limited: true, K: 11, floor: 7, A: 6, slack: 7 },
-  // Candy (endless match) modes — a separate engine: no target/par, a live
-  // resolve loop, snapshot undo. You start with `moves` moves; each move costs
-  // one and each cleared LINE grants `grant` (capped at `moveCap`); run out and
-  // you lose. Tuned (M=10, grant=5, cap=25, 3 colours) so careless play dies in
-  // ~20 moves but skilled play sustains for hundreds.
-  // match: 'color' | 'facing' (same colour+facing) | 'along' (colour + all
-  // pointing along the line). hazard: 'bad' (3-in-a-line loses) | 'blank' (inert
-  // obstacles) | undefined. 3x3 so a 3-in-a-row line is achievable.
-  C1: { candy: true, size: 3, colors: 3, match: 'color', moves: 10, grant: 5, moveCap: 25 },
-  C2: { candy: true, size: 3, colors: 3, match: 'facing', oriented: true, moves: 10, grant: 5, moveCap: 25 },
-  C3: { candy: true, size: 3, colors: 3, match: 'along',  oriented: true, moves: 10, grant: 5, moveCap: 25 },
-  C4: { candy: true, size: 3, colors: 3, match: 'color', hazard: 'bad',   moves: 10, grant: 5, moveCap: 25 },
-  C5: { candy: true, size: 3, colors: 3, match: 'color', hazard: 'blank', moves: 10, grant: 5, moveCap: 25 },
-  // Shape modes: match a coloured shape (shown, with a next preview) anywhere on
-  // the board to clear it and advance. Targets are derived from the board so
-  // they're always reachable, and the "next" uses a different colour than the
-  // current so a clear can't make it impossible (clears only remove the current
-  // colour). shapeMin/shapeMax bound shape size; 2-tile pairs are reserved for
-  // the easy tier. 3 colours so a colour reliably has >=3 tiles for sizing.
-  // 'shapeA' adds an AXIS facing constraint: every cell must point along the
-  // same axis (up/down vs left/right), shown as a symmetric bar. This is far more
-  // achievable than a strict exact-facing rule (~30% shallower solves, measured),
-  // so it gets a normal budget. ('shapeO' strict-facing exists in code but is too
-  // punishing within the move economy, so it isn't shipped as a tier.)
-  C6: { candy: true, size: 3, colors: 3, match: 'shape',  shapeMin: 2, shapeMax: 3, moves: 12, grant: 3, moveCap: 25 },
-  C7: { candy: true, size: 3, colors: 3, match: 'shape',  shapeMin: 3, shapeMax: 4, moves: 10, grant: 3, moveCap: 25 },
-  C8: { candy: true, size: 3, colors: 3, match: 'shapeA', shapeMin: 3, shapeMax: 4, moves: 11, grant: 3, moveCap: 26 },
-  // Dual: two different-colour shapes that must BOTH be present at once, then a
-  // single move clears them together. Generation verifies co-reachability (rigid
-  // moves can't place two colour groups independently) and regenerates otherwise.
-  // Sizes kept modest (2-3) so both-at-once stays reachable; bigger grant since a
-  // dual clear is harder to set up.
-  C9: { candy: true, size: 3, colors: 3, match: 'dual', shapeMin: 2, shapeMax: 3, moves: 12, grant: 5, moveCap: 28 },
+  S1: { candy: true, size: 3, colors: 3, match: 'shape',  shapeMin: 2, shapeMax: 3, moves: 12, grant: 3, moveCap: 25 },
+  S2: { candy: true, size: 3, colors: 3, match: 'shape',  shapeMin: 3, shapeMax: 4, moves: 10, grant: 3, moveCap: 25 },
+  S3: { candy: true, size: 3, colors: 3, match: 'shapeA', shapeMin: 3, shapeMax: 4, partialAxis: true,  moves: 11, grant: 3, moveCap: 26 },
+  S4: { candy: true, size: 3, colors: 3, match: 'shapeA', shapeMin: 3, shapeMax: 4, partialAxis: false, moves: 11, grant: 3, moveCap: 26 },
+  S5: { candy: true, size: 3, colors: 3, match: 'dual',   shapeMin: 2, shapeMax: 3, moves: 12, grant: 5, moveCap: 28 },
 };
 const LEVEL_LABEL = {
-  L1: 'Level 1', L2: 'Level 2', L3: 'Level 3', L4: 'Level 4',
-  L5: 'Level 5', L6: 'Level 6', L7: 'Level 7',
-  L8: 'Level 8', L9: 'Level 9', L10: 'Level 10', L11: 'Level 11',
-  L12: 'Level 12', L13: 'Level 13', L14: 'Level 14', L15: 'Level 15',
-  C1: 'Candy · colour', C2: 'Candy · facing', C3: 'Candy · along-line',
-  C4: 'Candy · bad candies', C5: 'Candy · blanks',
-  C6: 'Candy · shapes (easy)', C7: 'Candy · shapes', C8: 'Candy · shapes + axis',
-  C9: 'Candy · two shapes', Custom: 'Custom',
+  S1: 'Shapes (easy)', S2: 'Shapes', S3: 'Shapes + axis (partial)',
+  S4: 'Shapes + axis', S5: 'Two shapes',
 };
 const levelLabel = key => LEVEL_LABEL[key] || key;
-const NODE_CAP = 1200000;
-const CUSTOM_MAX_K = { 3: 40, 4: 24, 5: 16 }; // keep exact BFS fast per board size
 
 /* ---- geometry shared with the worker (kept in sync) ---- */
 function ringsOf(n) {
@@ -1044,18 +589,23 @@ function randomShape(sz, n) {
 //   t.O set    -> every cell must face exactly O (strict).
 //   t.axis set -> every cell's facing must share that axis (0 = up/down,
 //                 1 = left/right); gentler, since orientation o has axis (o & 1).
+// Facing constraints (optional): t.O = exact facing; t.axis = one axis for the
+// whole shape; t.axes = per-cell axis array (entry 0/1 required, or null = any),
+// which gives the "partial axis" variant where only some cells are constrained.
 function findShape(b, t, n) {
-  const { shape, C } = t, O = t.O, axis = t.axis;
+  const { shape, C } = t, O = t.O, axis = t.axis, axes = t.axes;
   let maxDr = 0, maxDc = 0;
   for (const [dr, dc] of shape) { if (dr > maxDr) maxDr = dr; if (dc > maxDc) maxDc = dc; }
   for (let or = 0; or + maxDr < n; or++) for (let oc = 0; oc + maxDc < n; oc++) {
     let ok = true; const ids = [];
-    for (const [dr, dc] of shape) {
+    for (let si = 0; si < shape.length; si++) {
+      const [dr, dc] = shape[si];
       const idx = (or + dr) * n + (oc + dc); ids.push(idx);
       const v = b[idx];
       if (v === 0 || decC(v) !== C) { ok = false; break; }
       if (O != null && decO(v) !== O) { ok = false; break; }
-      if (axis != null && (decO(v) & 1) !== axis) { ok = false; break; }
+      const wantAxis = axes ? axes[si] : axis;
+      if (wantAxis != null && (decO(v) & 1) !== wantAxis) { ok = false; break; }
     }
     if (ok) return ids;
   }
@@ -1081,6 +631,20 @@ function shapeDist(b, t, n, cap) {
   }
   return -1;
 }
+// Build an axis-facing target for a shape. Full axis: every cell must share one
+// axis (t.axis). Partial axis (cfg.partialAxis): only SOME cells require the
+// axis (t.axes per-cell, with nulls as wildcards), so it's a gentler mid tier —
+// at least one constrained cell and at least one free, so it's genuinely partial.
+function makeAxisTarget(shape, C) {
+  const axis = (Math.random() * 2) | 0;
+  if (!candyCfg.partialAxis) return { shape, C, axis };
+  const axes = shape.map(() => (Math.random() < 0.6 ? axis : null));
+  // guarantee a real mix: at least one constrained, at least one free
+  if (!axes.some(a => a != null)) axes[(Math.random() * axes.length) | 0] = axis;
+  if (!axes.some(a => a == null)) axes[(Math.random() * axes.length) | 0] = null;
+  return { shape, C, axis, axes };  // keep .axis too (for any single-axis display fallbacks)
+}
+
 // Derive a reachable, non-trivial target from the board; seed cells if none has
 // enough. `avoidC` (optional) excludes a colour so a freshly-generated "next"
 // target uses a different colour than the current one — since clearing the
@@ -1121,7 +685,7 @@ function ensureTarget(b, n, avoidC) {
     const shape = randomShape(sz, n);
     if (shape.length !== sz) continue;
     const t = oriented ? { shape, C, O: (Math.random() * 4) | 0 }
-            : axisMode ? { shape, C, axis: (Math.random() * 2) | 0 }
+            : axisMode ? makeAxisTarget(shape, C)
             : { shape, C };
     // Accept any non-trivial target whose colour has enough tiles (the proven
     // feasibility criterion). cnt[C] >= sz holds by construction here.
@@ -1290,45 +854,28 @@ function isShapeMode() { return candyCfg && (candyCfg.match === 'shape' || candy
 function candyNewBoard(n) {
   let b = new Uint8Array(n * n);
   for (let i = 0; i < n * n; i++) b[i] = candySpawn();
-  b = candyResolve(b, n).board; // settle any initial lines so we start stable
+  b = candyGravity(b, n); // settle (shapes never clear on lines, so no resolve needed)
   if (isDualMode()) {
     const [a, bb] = ensureDualTargets(b, n); candyTarget = a; candyNextTarget = bb;
-  } else if (isShapeMode()) {
-    // shape mode: seed the two live targets; next avoids current's colour.
+  } else {
+    // single-shape modes: seed the two live targets; next avoids current's colour.
     candyTarget = ensureTarget(b, n, -1);
     candyNextTarget = ensureTarget(b, n, candyTarget.C);
   }
   return b;
 }
 
-/* ---- worker ---- */
-const worker = new Worker(URL.createObjectURL(
-  new Blob([document.getElementById('workerSrc').textContent], { type: 'text/javascript' })));
-let pendingReq = 0;
-worker.onmessage = e => {
-  if (e.data.id !== pendingReq) return; // ignore superseded requests
-  receiveLevel(e.data);
-};
-
 const els = {
   difficulty: document.getElementById('difficulty'),
-  customToggle: document.getElementById('customToggle'),
-  customPanel: document.getElementById('customPanel'),
   newBtn: document.getElementById('newBtn'),
   frame: document.getElementById('frame'),
-  targetBoard: document.getElementById('targetBoard'),
   playBoard: document.getElementById('playBoard'),
-  gen: document.getElementById('gen'),
-  win: document.getElementById('win'),
-  winSub: document.getElementById('winSub'),
-  winNext: document.getElementById('winNext'),
   movesLine: document.getElementById('movesLine'),
   movesLabel: document.getElementById('movesLabel'),
   moveUsed: document.getElementById('moveUsed'),
   movePar: document.getElementById('movePar'),
   parSpan: document.getElementById('parSpan'),
   parLabel: document.getElementById('parLabel'),
-  targetBlock: document.getElementById('targetBlock'),
   shapeTargets: document.getElementById('shapeTargets'),
   shapeCur: document.getElementById('shapeCur'),
   shapeNext: document.getElementById('shapeNext'),
@@ -1344,10 +891,6 @@ const els = {
   statRate: document.getElementById('statRate'),
   statAvg: document.getElementById('statAvg'),
   resetStats: document.getElementById('resetStats'),
-  rSize: document.getElementById('rSize'), vSize: document.getElementById('vSize'),
-  rColors: document.getElementById('rColors'), vColors: document.getElementById('vColors'),
-  rCells: document.getElementById('rCells'), vCells: document.getElementById('vCells'),
-  rDepth: document.getElementById('rDepth'), vDepth: document.getElementById('vDepth'),
 };
 
 let cfg;                 // active difficulty config
@@ -1494,72 +1037,39 @@ function playMarks(i) {
 }
 
 function render() {
-  const n = cfg.size;
-
-  if (candy) { renderCandy(n); return; }
-
-  const windowed = winN < n;
-  // Target preview: shown normally, or hidden (until solved) on a hidden tier.
-  const revealTarget = !hideTarget || solved;
-  els.targetBoard.classList.toggle('hidden-target', hideTarget && !solved);
-  els.targetBlock.style.display = '';
-  els.shapeTargets.classList.remove('show');
-  els.playBoard.classList.remove('candy', 'dropping');
-  if (goal && revealTarget) renderBoard(els.targetBoard, goal, winN);
-  if (state) renderBoard(els.playBoard, state, n, windowed ? playMarks : null);
-  els.playBoard.classList.toggle('windowed', windowed);
-
-  els.moveUsed.textContent = used;
-  els.movePar.textContent = (limited && par) ? par : '—';
-  els.parLabel.textContent = '/ par ';
-  els.parSpan.style.display = limited ? '' : 'none';   // no par shown when unlimited
-  els.movesLabel.textContent = 'Moves ';
-  els.movesLine.classList.toggle('warn', atPar);
-  els.playBoard.classList.toggle('solved', solved);
-  els.playBoard.classList.toggle('atpar', atPar && !solved);
-  els.frame.classList.toggle('locked', generating || solved);
-
-  // Highlight the button that reverses the last move; that tap steps you back
-  // and refunds a move. When at par it's the only move left available.
-  const undoMove = lastMove ? INV[lastMove] : null;
-  document.querySelectorAll('.frame button[data-move]').forEach(btn => {
-    const isUndo = btn.dataset.move === undoMove;
-    btn.classList.toggle('undo-hint', isUndo && !solved && !generating);
-    // at par, forward moves are spent — only the reversing move stays live
-    btn.classList.toggle('spent', atPar && !solved && !isUndo);
-  });
-
-  els.resetBtn.disabled = generating || (stack.length === 0);
-
-  els.hint.className = 'hint ' + (atPar && !solved ? 'dead' : 'idle');
-  els.hint.textContent = solved ? ''
-    : (atPar ? 'At par — step back (highlighted) or Reset to find a shorter path.'
-             : (limited ? 'Reach the target within par.' : 'Match the target — take your time.'));
+  // All shipped modes are candy shape modes, so render always delegates here.
+  if (candy) renderCandy(cfg.size);
 }
 
-// Render a shape target into a small grid: cells of the shape get colour C, the
-// rest are blank. `t` is { shape, C }.
+// Render a shape target into a small grid: shape cells get colour C; a facing
+// glyph is added per the constraint — a chevron for strict (t.O), a bar for axis
+// (t.axis), or a per-cell bar for partial axis (t.axes, with null = no bar).
 function renderShape(el, t) {
   if (!t) { el.replaceChildren(); return; }
   const rows = Math.max(...t.shape.map(p => p[0])) + 1;
   const colsN = Math.max(...t.shape.map(p => p[1])) + 1;
   el.style.gridTemplateColumns = 'repeat(' + colsN + ', var(--sc))';
-  const on = new Set(t.shape.map(([r, c]) => r * colsN + c));
+  // map grid index -> shape-cell index, so per-cell axes line up
+  const cellAt = new Map();
+  t.shape.forEach(([r, c], si) => cellAt.set(r * colsN + c, si));
   el.replaceChildren();
   for (let i = 0; i < rows * colsN; i++) {
     const d = document.createElement('div');
-    d.className = 'scell' + (on.has(i) ? ' on' : '');
-    if (on.has(i)) {
+    const si = cellAt.has(i) ? cellAt.get(i) : -1;
+    d.className = 'scell' + (si >= 0 ? ' on' : '');
+    if (si >= 0) {
       d.style.background = colorOf(candyCell(t.C, 0));
-      if (t.O != null) {            // strict facing: directional chevron
+      const cellAxis = t.axes ? t.axes[si] : t.axis;
+      if (t.O != null) {              // strict facing: directional chevron
         const a = document.createElement('span'); a.className = 'arrow';
         a.style.transform = 'rotate(' + ORIENT_DEG[t.O] + 'deg)';
         d.appendChild(a);
-      } else if (t.axis != null) {  // axis facing: a symmetric bar (up/down vs L/R)
+      } else if (cellAxis != null) {  // axis facing: a symmetric bar (up/down vs L/R)
         const a = document.createElement('span'); a.className = 'arrow bar';
-        a.style.transform = 'rotate(' + (t.axis ? 90 : 0) + 'deg)';
+        a.style.transform = 'rotate(' + (cellAxis ? 90 : 0) + 'deg)';
         d.appendChild(a);
       }
+      // partial-axis wildcard cells (cellAxis == null) get no bar: any facing OK
     }
     el.appendChild(d);
   }
@@ -1592,7 +1102,6 @@ function renderCandy(n) {
     els.shapeNextLabel.textContent = dual ? 'and' : 'Next';
     els.shapeArrow.textContent = dual ? '+' : '→';
   }
-  els.targetBlock.style.display = 'none';
   els.playBoard.classList.remove('windowed', 'solved', 'atpar');
   els.playBoard.classList.add('candy');
   els.playBoard.classList.toggle('dropping', candyDropFrame);
@@ -1853,119 +1362,29 @@ function onSolve() {
 }
 
 /* ---- level request / receive ---- */
+// Start a fresh run of the selected shape mode. Everything is generated locally
+// on the main thread (no worker / BFS); the board and the two live targets are
+// derived from the freshly spawned tiles so the first target is always solvable.
 function requestLevel() {
-  els.customPanel.classList.remove('open');
-  els.win.classList.remove('show');
-
-  // Candy mode is generated locally (no worker/BFS) and starts immediately.
-  if (cfg.candy) {
-    if (candyAnimTimer) { clearTimeout(candyAnimTimer); candyAnimTimer = null; }
-    candy = true; candyCfg = cfg;
-    axisMode = cfg.match === 'shapeA';
-    oriented = !!cfg.oriented || axisMode;   // facing/axis rules need glyphs drawn
-    picture = false; hideTarget = false;
-    perms = buildPerms(cfg.size); edge = edgeMask(cfg.size);
-    winN = cfg.size; winOff = 0; winIdx = []; goal = null;
-    generating = false; solved = false; atPar = false;
-    candyAnimating = false; candyClearing = null;
-    state = candyNewBoard(cfg.size);
-    score = 0; candyMoves = cfg.moves; candyUndoStack = []; candyLost = false; lastMove = null;
-    const stats = loadStats(), k = statKey();
-    const s = stats[k] || { best: 0, played: 0 };
-    s.played = (s.played || 0) + 1; stats[k] = s; saveStats(stats);
-    showStats();
-    render();
-    return;
-  }
-
-  candy = false; candyCfg = null;
-  generating = true;
-  solved = false; atPar = false; counted = false;
-  stack = []; used = 0; lastMove = null;
-  els.gen.classList.add('show');
-  render();
-  // Picture levels pick a fresh source image now, so it's ready on arrival.
-  if (cfg.picture) pieceImg = pickImage();
-  pendingReq++;
-  const n = cfg.size;
-  const wd = Math.min(cfg.win != null ? cfg.win : n, n); // custom levels are full-board
-  worker.postMessage({
-    id: pendingReq, n: n, wd: wd, colors: cfg.colors, cells: cfg.cells,
-    decoys: cfg.decoys || 0, oriented: !!cfg.oriented, picture: !!cfg.picture,
-    K: cfg.K, floor: cfg.floor, A: cfg.A, cap: NODE_CAP,
-  });
-}
-
-function receiveLevel(data) {
-  const n = cfg.size;
-  const wd = Math.min(cfg.win != null ? cfg.win : n, n);
-  perms = buildPerms(n);
-  edge = edgeMask(n);
-  oriented = !!cfg.oriented;
-  axisMode = false;   // solve levels never use axis-facing
-  picture = !!cfg.picture;
-  hideTarget = !!cfg.hideTarget;
-  computeWindow(n, wd);
-  goal = Uint8Array.from(data.goal);
-  start = Uint8Array.from(data.start);
-  state = start.slice();
-  optimal = data.min;
-  limited = cfg.limited !== false;   // presets may set false; custom is always limited
-  par = limited ? optimal + (cfg.slack != null ? cfg.slack : 3) : Infinity;
-  used = 0; stack = []; lastMove = null; solved = false; atPar = false; counted = false;
-  generating = false;
-  els.gen.classList.remove('show');
+  if (candyAnimTimer) { clearTimeout(candyAnimTimer); candyAnimTimer = null; }
+  candy = true; candyCfg = cfg;
+  axisMode = cfg.match === 'shapeA';
+  oriented = axisMode;            // axis modes draw a bar glyph; others draw nothing
+  perms = buildPerms(cfg.size); edge = edgeMask(cfg.size);
+  candyAnimating = false; candyClearing = null;
+  state = candyNewBoard(cfg.size);
+  score = 0; candyMoves = cfg.moves; candyUndoStack = []; candyLost = false; lastMove = null;
+  const stats = loadStats(), k = statKey();
+  const s = stats[k] || { best: 0, played: 0 };
+  s.played = (s.played || 0) + 1; stats[k] = s; saveStats(stats);
+  showStats();
   render();
 }
 
-/* ---- difficulty / custom ---- */
-function clampCustom() {
-  const n = +els.rSize.value;
-  els.rCells.max = n * n - 1;
-  if (+els.rCells.value > n * n - 1) els.rCells.value = n * n - 1;
-  els.rDepth.max = CUSTOM_MAX_K[n];
-  if (+els.rDepth.value > CUSTOM_MAX_K[n]) els.rDepth.value = CUSTOM_MAX_K[n];
-  els.vSize.textContent = els.rSize.value;
-  els.vColors.textContent = els.rColors.value;
-  els.vCells.textContent = els.rCells.value;
-  els.vDepth.textContent = els.rDepth.value;
-}
-function readCustom() {
-  const K = +els.rDepth.value;
-  const floor = Math.max(2, Math.round(K * 0.7));
-  cfg = {
-    label: 'Custom',
-    size: +els.rSize.value,
-    colors: +els.rColors.value,
-    cells: +els.rCells.value,
-    K: K,
-    floor: floor,
-    A: 5,
-    // par ~= 1.9x the expected optimal, matching the preset feel (fun but tricky).
-    slack: Math.max(3, Math.round(floor * 0.9)),
-  };
-}
-function syncCustomInputs() {
-  els.rSize.value = cfg.size;
-  els.rColors.value = cfg.colors;
-  els.rCells.value = cfg.cells;
-  els.rDepth.value = cfg.K;
-  clampCustom();
-}
-
-function applyDifficulty(label, fromCustomEdit) {
-  if (label === 'Custom') {
-    if (!fromCustomEdit) {
-      // entering custom from the dropdown: seed sliders from current cfg
-      if (cfg.label !== 'Custom') { els.rSize.value = cfg.size; els.rColors.value = cfg.colors; els.rCells.value = cfg.cells; els.rDepth.value = cfg.K; }
-      clampCustom();
-    }
-    els.customPanel.classList.add('open');
-    readCustom();
-  } else {
-    cfg = Object.assign({ label: label }, DIFF[label]);
-    syncCustomInputs();
-  }
+/* ---- difficulty ---- */
+function applyDifficulty(label) {
+  cfg = Object.assign({ label: label }, DIFF[label] || DIFF.S1);
+  if (!DIFF[label]) cfg.label = 'S1';
   els.difficulty.value = cfg.label;
   saveCfg();
   showStats();
@@ -1976,28 +1395,9 @@ function applyDifficulty(label, fromCustomEdit) {
 document.querySelectorAll('.frame button[data-move]').forEach(btn =>
   btn.addEventListener('click', () => doMove(btn.dataset.move)));
 
-els.difficulty.addEventListener('change', () => applyDifficulty(els.difficulty.value, false));
-els.customToggle.addEventListener('click', () => els.customPanel.classList.toggle('open'));
-
-let customDebounce = null;
-[els.rSize, els.rColors, els.rCells, els.rDepth].forEach(input => {
-  input.addEventListener('input', () => {
-    clampCustom();
-    readCustom();
-    els.difficulty.value = 'Custom';
-    saveCfg();
-    showStats();
-  });
-  input.addEventListener('change', () => {
-    clampCustom(); readCustom(); saveCfg();
-    if (customDebounce) clearTimeout(customDebounce);
-    customDebounce = setTimeout(requestLevel, 60);
-  });
-});
-
+els.difficulty.addEventListener('change', () => applyDifficulty(els.difficulty.value));
 els.newBtn.addEventListener('click', requestLevel);
 els.resetBtn.addEventListener('click', resetBoard);
-els.winNext.addEventListener('click', requestLevel);
 
 els.resetStats.addEventListener('click', () => {
   if (confirm('Reset stats for ' + levelLabel(cfg.label) + '?')) {
@@ -2017,22 +1417,7 @@ document.addEventListener('keydown', e => {
 /* ---- init ---- */
 (function init() {
   const saved = loadCfg();
-  if (saved.label === 'Custom' && saved.size) {
-    cfg = saved;
-    els.rSize.value = cfg.size; els.rColors.value = cfg.colors; els.rCells.value = cfg.cells; els.rDepth.value = cfg.K;
-    clampCustom();
-    els.customPanel.classList.add('open');
-  } else {
-    const label = DIFF[saved.label] ? saved.label : 'L1';
-    cfg = Object.assign({ label: label }, DIFF[label]);
-    syncCustomInputs();
-  }
-  els.difficulty.value = cfg.label;
-  showStats();
-  // Load picture sources first so a picture level renders correctly on arrival,
-  // then start the first board. (initPics resolves instantly to procedural
-  // fallbacks if there's no manifest, so non-picture levels aren't delayed.)
-  initPics().then(requestLevel);
+  applyDifficulty(DIFF[saved.label] ? saved.label : 'S1');
 })();
 </script>
 </body>

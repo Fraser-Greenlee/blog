@@ -1,29 +1,30 @@
 // Functional tests for the Shift Puzzle — drives the BUILT page in headless
-// Chrome over the DevTools Protocol and asserts real gameplay behaviour that the
-// engine unit tests can't reach: solving levels to a win, the candy move-economy
-// and (repeatable) undo, out-of-moves recovery, and a smoke pass over every mode.
+// Chrome (DevTools Protocol) and asserts real gameplay for the candy SHAPE modes
+// (S1-S5): each mode loads & plays, targets stay feasible, the repeatable undo
+// stack works, out-of-moves undo recovers, dual clears both shapes, and the
+// partial-axis variant renders fewer bars than cells.
 //
-// Run with the preview server already serving the build:
+// Run against a preview server you start:
 //   npm run build && npm run preview &   # then:
 //   node test/functional.test.mjs http://localhost:4321
-// or just `node test/functional.test.mjs` and it will build+preview itself.
+// or `node test/functional.test.mjs` to build + preview itself.
 
 import { spawn, execFileSync } from 'child_process';
 import { setTimeout as delay } from 'timers/promises';
 
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const DBG_PORT = 9211;
+const DBG_PORT = 9212;
 const PROFILE = '/tmp/shiftpuzzle-test-profile';
 
 let baseUrl = process.argv[2];
 let previewProc = null;
 
 async function ensureServer() {
-  if (baseUrl) return baseUrl;                       // caller supplied a URL
+  if (baseUrl) return baseUrl;
   execFileSync('npm', ['run', 'build'], { cwd: process.cwd(), stdio: 'ignore' });
   previewProc = spawn('npm', ['run', 'preview'], { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'ignore'] });
   for (let i = 0; i < 80; i++) {
-    const line = await readLine(previewProc.stdout);
+    const line = await new Promise(res => { const s = previewProc.stdout; const f = d => { s.off('data', f); res(d.toString()); }; s.on('data', f); setTimeout(() => { s.off('data', f); res(''); }, 1500); });
     const m = line && line.match(/localhost:(\d+)/);
     if (m) { baseUrl = `http://localhost:${m[1]}`; break; }
   }
@@ -31,61 +32,31 @@ async function ensureServer() {
   await delay(800);
   return baseUrl;
 }
-function readLine(stream) {
-  return new Promise(res => { const onData = d => { stream.off('data', onData); res(d.toString()); }; stream.on('data', onData); setTimeout(() => { stream.off('data', onData); res(''); }, 1500); });
-}
-
 async function devtoolsWs() {
   for (let i = 0; i < 60; i++) {
-    try {
-      const list = JSON.parse(execFileSync('curl', ['-s', `http://localhost:${DBG_PORT}/json`]).toString());
+    try { const list = JSON.parse(execFileSync('curl', ['-s', `http://localhost:${DBG_PORT}/json`]).toString());
       const pg = list.find(t => t.type === 'page' && t.url.includes('shift-puzzle'));
-      if (pg && pg.webSocketDebuggerUrl) return pg.webSocketDebuggerUrl;
-    } catch (e) { /* not up yet */ }
+      if (pg && pg.webSocketDebuggerUrl) return pg.webSocketDebuggerUrl; } catch (e) {}
     await delay(150);
   }
   throw new Error('no devtools target');
 }
-
 function makeClient(wsUrl) {
   const ws = new WebSocket(wsUrl);
-  let id = 0; const pending = new Map();
+  let id = 0; const pending = new Map(); const errors = [];
   const ready = new Promise(r => ws.addEventListener('open', () => r()));
-  ws.addEventListener('message', ev => { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); } });
+  ws.addEventListener('message', ev => { const m = JSON.parse(ev.data);
+    if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
+    if (m.method === 'Runtime.exceptionThrown') { const x = m.params.exceptionDetails; errors.push((x.exception && x.exception.description) || x.text); } });
   const cmd = (method, params) => new Promise(r => { const i = ++id; pending.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
-  const ev = async (expr) => {
-    const r = await cmd('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true });
-    if (r.result && r.result.exceptionDetails) throw new Error('page exception: ' + JSON.stringify(r.result.exceptionDetails));
-    return r.result.result.value;
-  };
-  return { cmd, ev, ready, close: () => ws.close() };
+  const ev = async (expr) => { const r = await cmd('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }); if (r.result && r.result.exceptionDetails) throw new Error('page exception: ' + JSON.stringify(r.result.exceptionDetails)); return r.result.result.value; };
+  return { cmd, ev, ready, errors, close: () => ws.close() };
 }
 
-// ---- harness ----
 let passed = 0, failed = 0; const fails = [];
 function check(name, cond, detail) { if (cond) passed++; else { failed++; fails.push(name + (detail ? ' — ' + detail : '')); } }
 
-// In-page helpers, injected once: a BFS solver for windowed solve levels and a
-// settle() that waits out candy animations. Defined as a string the page runs.
-const HELPERS = `
-window.__t = {
-  sleep: ms => new Promise(r => setTimeout(r, ms)),
-  settle: async () => { for (let i = 0; i < 400; i++) { if (!(window.candyAnimating)) return; await new Promise(r => setTimeout(r, 10)); } },
-  waitGen: async () => { for (let i = 0; i < 300; i++) { if (!generating) return true; await new Promise(r => setTimeout(r, 20)); } return false; },
-  solveWindow: () => {
-    const NAMES = ['U','D','L','R','CW','CCW'];
-    const apply = (s, m) => applyMove(s, m); const key = s => Array.from(s).join();
-    const idx = winIdx, g = Array.from(goal);
-    const matches = b => { for (const [bi, ti] of idx) if (b[bi] !== g[ti]) return false; return true; };
-    const sa = state.slice(); if (matches(sa)) return [];
-    let f = [{ s: sa, p: [] }]; const seen = new Set([key(sa)]); let d = 0;
-    while (f.length && d <= optimal + 1) { d++; const nf = [];
-      for (const nd of f) for (const m of NAMES) { const ns = apply(nd.s, m); const k = key(ns); const np = nd.p.concat(m);
-        if (matches(ns)) return np; if (!seen.has(k)) { seen.add(k); nf.push({ s: ns, p: np }); } }
-      f = nf; }
-    return null;
-  }
-};`;
+const SETTLE = `(async () => { for (let i = 0; i < 300; i++) { if (!candyAnimating) return; await new Promise(r => setTimeout(r, 10)); } })()`;
 
 async function run() {
   await ensureServer();
@@ -94,102 +65,111 @@ async function run() {
   let cl;
   try {
     cl = makeClient(await devtoolsWs());
-    await cl.ready;
-    await cl.ev('1+1');
-    await delay(600);
-    await cl.ev(HELPERS);
+    await cl.ready; await cl.cmd('Runtime.enable'); await cl.ev('1+1'); await delay(600);
 
-    // --- A. every solve level (L1..L15) generates and can be solved to a win ---
-    for (let L = 1; L <= 15; L++) {
-      const res = await cl.ev(`(async () => {
-        els.difficulty.value = 'L${L}'; applyDifficulty('L${L}', false);
-        if (!(await __t.waitGen())) return { ok:false, why:'timeout' };
-        const path = __t.solveWindow();
-        if (!path) return { ok:false, why:'no solution found' };
-        for (const m of path) doMove(m);
-        return { ok: solved && document.getElementById('win').classList.contains('show'), len: path.length, optimal };
-      })()`);
-      check(`L${L} solves to win`, res && res.ok, res && (res.why || `len ${res.len} vs optimal ${res.optimal}`));
-    }
+    // dropdown is exactly the 5 shape modes
+    const opts = await cl.ev(`[...document.getElementById('difficulty').options].map(o => o.value)`);
+    check('dropdown = S1..S5', JSON.stringify(opts) === JSON.stringify(['S1', 'S2', 'S3', 'S4', 'S5']), JSON.stringify(opts));
 
-    // --- B. candy smoke: every candy mode loads, accepts a move, no exception ---
-    for (const C of ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']) {
-      const res = await cl.ev(`(async () => {
-        els.difficulty.value = '${C}'; applyDifficulty('${C}', false); await __t.sleep(60);
+    // A. each mode loads, plays 10 moves, stays full + feasible, no exception
+    for (const S of ['S1', 'S2', 'S3', 'S4', 'S5']) {
+      const r = await cl.ev(`(async () => {
+        els.difficulty.value = '${S}'; applyDifficulty('${S}'); await ${SETTLE};
         if (!candy) return { ok:false, why:'not candy' };
-        const full = state.every(v => v !== 0);
-        doMove('CW'); await __t.settle();
-        return { ok: full, score, moves: candyMoves };
+        for (let i = 0; i < 10; i++) { doMove(['U','D','L','R','CW','CCW'][(Math.random()*6)|0]); await ${SETTLE}; }
+        const cnt = {}; for (const v of state) if (v) { const c = decC(v); cnt[c] = (cnt[c]||0)+1; }
+        const feasT = (cnt[candyTarget.C]||0) >= candyTarget.shape.length;
+        const feasN = (cnt[candyNextTarget.C]||0) >= candyNextTarget.shape.length;
+        return { ok: state.every(v => v !== 0) && feasT && feasN, match: candyCfg.match };
       })()`);
-      check(`${C} loads & plays`, res && res.ok, res && res.why);
+      check(`${S} loads, plays, feasible`, r && r.ok, r && r.why);
     }
 
-    // --- C. candy undo is a REPEATABLE stack: several non-clearing moves can each
-    //        be undone in turn, each refunding a move and re-lighting the undo. ---
+    // B. repeatable undo stack: 3 non-clearing moves can each be undone in turn,
+    //    each refunding a move and re-lighting the undo button.
     {
-      const res = await cl.ev(`(async () => {
-        const INV = { U:'D', D:'U', L:'R', R:'L', CW:'CCW', CCW:'CW' };
-        els.difficulty.value = 'C8'; applyDifficulty('C8', false); await __t.sleep(60);
-        // make a sequence of NON-clearing moves, recording board+moves before each
-        const log = [];
-        let guard = 0;
+      const r = await cl.ev(`(async () => {
+        els.difficulty.value = 'S4'; applyDifficulty('S4'); await ${SETTLE};
+        const log = []; let guard = 0;
         while (log.length < 3 && guard++ < 40) {
-          const before = { board: Array.from(state), moves: candyMoves, last: lastMove };
-          const scoreBefore = score;
-          doMove('CW'); await __t.settle();
-          if (score === scoreBefore && !candyLost) log.push(before);
-          else { log.length = 0; } // a clear wiped history; restart the sequence
+          const before = { board: Array.from(state), moves: candyMoves };
+          const sc = score; doMove('CW'); await ${SETTLE};
+          if (score === sc && !candyLost) log.push(before); else log.length = 0;
         }
-        if (log.length < 3) return { ok:false, why:'could not get 3 non-clearing moves' };
-        // now undo three times; each must restore the prior snapshot and re-light undo
-        let okCount = 0;
+        if (log.length < 3) return { ok:false, why:'no 3 non-clearing moves' };
+        let okc = 0;
         for (let k = log.length - 1; k >= 0; k--) {
-          const undoBtn = candyUndoMoveName ? candyUndoMoveName() : (lastMove ? INV[lastMove] : null);
-          if (!undoBtn) break;
-          doMove(undoBtn); await __t.settle();
-          const want = log[k];
-          if (Array.from(state).join() === want.board.join() && candyMoves === want.moves) okCount++;
+          const undo = candyUndoMoveName();
+          if (!undo) break;
+          doMove(undo); await ${SETTLE};
+          if (Array.from(state).join() === log[k].board.join() && candyMoves === log[k].moves) okc++;
         }
-        return { ok: okCount === 3, okCount };
+        return { ok: okc === 3, okc };
       })()`);
-      check('candy undo is a repeatable stack', res && res.ok, res && `restored ${res.okCount}/3 (${res.why || ''})`);
+      check('repeatable undo stack', r && r.ok, r && `restored ${r.okc}/3 ${r.why || ''}`);
     }
 
-    // --- D. out of moves: the undo button stays clickable and unwinds the loss ---
+    // C. out of moves: undo button stays clickable and unwinds the loss
     {
-      const res = await cl.ev(`(async () => {
-        const INV = { U:'D', D:'U', L:'R', R:'L', CW:'CCW', CCW:'CW' };
-        els.difficulty.value = 'C8'; applyDifficulty('C8', false); await __t.sleep(60);
+      const r = await cl.ev(`(async () => {
+        els.difficulty.value = 'S4'; applyDifficulty('S4'); await ${SETTLE};
         let guard = 0;
-        while (!candyLost && guard++ < 250) { doMove('CW'); await __t.settle(); }
-        if (!candyLost) return { ok:false, why:'never ran out of moves' };
-        // the undo-hint button must NOT be inert (no 'spent', frame may be 'locked'
-        // but the CSS keeps undo-hint clickable). Verify class state + that a tap works.
-        const undoName = candyUndoMoveName ? candyUndoMoveName() : (lastMove ? INV[lastMove] : null);
-        if (!undoName) return { ok:false, why:'no undo available when lost' };
-        const btn = [...document.querySelectorAll('.frame button[data-move]')].find(b => b.dataset.move === undoName);
+        while (!candyLost && guard++ < 250) { doMove('CW'); await ${SETTLE}; }
+        if (!candyLost) return { ok:false, why:'never ran out' };
+        const undo = candyUndoMoveName();
+        if (!undo) return { ok:false, why:'no undo when lost' };
+        const btn = [...document.querySelectorAll('.frame button[data-move]')].find(b => b.dataset.move === undo);
         const inert = btn.classList.contains('spent');
-        const movesBefore = candyMoves;
-        doMove(undoName); await __t.settle();
-        return { ok: !inert && !candyLost && candyMoves > movesBefore, inert, lostAfter: candyLost, moves: candyMoves };
+        const before = candyMoves;
+        doMove(undo); await ${SETTLE};
+        return { ok: !inert && !candyLost && candyMoves > before, inert };
       })()`);
-      check('out-of-moves undo recovers', res && res.ok, res && `inert=${res.inert} lostAfter=${res.lostAfter} moves=${res.moves} ${res.why || ''}`);
+      check('out-of-moves undo recovers', r && r.ok, r && `inert=${r.inert} ${r.why || ''}`);
     }
 
-    // --- E. shape targets are always feasible (colour count >= shape size) ---
-    for (const C of ['C6', 'C7', 'C8']) {
-      const res = await cl.ev(`(async () => {
-        els.difficulty.value = '${C}'; applyDifficulty('${C}', false); await __t.sleep(60);
-        let bad = 0;
-        for (let i = 0; i < 60; i++) {
-          document.getElementById('resetBtn').click();
-          const cnt = {}; for (const v of state) if (v) { const c = decC(v); cnt[c] = (cnt[c]||0)+1; }
-          for (const t of [candyTarget, candyNextTarget]) if ((cnt[t.C]||0) < t.shape.length) bad++;
+    // D. dual (S5): forming BOTH shapes clears them together
+    {
+      const r = await cl.ev(`(async () => {
+        const NAMES = ['U','D','L','R','CW','CCW'];
+        els.difficulty.value = 'S5'; applyDifficulty('S5'); await ${SETTLE};
+        const ap = (s,m) => applyMove(s,m); const key = s => Array.from(s).join();
+        function pathBoth(){ if (bothPresent(state, candyTarget, candyNextTarget, 3)) return [];
+          let f=[{s:state.slice(),p:[]}]; const seen=new Set([key(state)]); let d=0;
+          while(f.length&&d<10){d++;const nf=[];for(const nd of f)for(const m of NAMES){const ns=ap(nd.s,m);const k=key(ns);const np=nd.p.concat(m);if(bothPresent(ns,candyTarget,candyNextTarget,3))return np;if(!seen.has(k)){seen.add(k);nf.push({s:ns,p:np});}}f=nf;}
+          return null; }
+        let cleared = 0;
+        for (let attempt = 0; attempt < 12 && cleared < 1; attempt++) {
+          const path = pathBoth();
+          if (!path) { document.getElementById('resetBtn').click(); await ${SETTLE}; continue; }
+          const sb = score;
+          for (const m of path) { doMove(m); await ${SETTLE}; }
+          if (path.length === 0) { doMove('CW'); await ${SETTLE}; }
+          if (score > sb) cleared++;
+          document.getElementById('resetBtn').click(); await ${SETTLE};
         }
-        return { ok: bad === 0, bad };
+        return { ok: cleared >= 1, cleared };
       })()`);
-      check(`${C} targets always feasible`, res && res.ok, res && `${res.bad} infeasible`);
+      check('dual clears both shapes', r && r.ok, r && `cleared ${r.cleared}`);
     }
+
+    // E. partial axis (S3): fewer bars than cells (some wildcards); full (S4): all bars
+    {
+      const r = await cl.ev(`(async () => {
+        els.difficulty.value = 'S3'; applyDifficulty('S3'); await ${SETTLE};
+        let partialSeen = false;
+        for (let i = 0; i < 20; i++) { document.getElementById('resetBtn').click();
+          const cells = document.querySelectorAll('#shapeCur .scell.on').length;
+          const bars = document.querySelectorAll('#shapeCur .scell.on .arrow.bar').length;
+          if (bars > 0 && bars < cells) partialSeen = true; }
+        const s3HasAxes = !!candyTarget.axes;
+        els.difficulty.value = 'S4'; applyDifficulty('S4'); await ${SETTLE};
+        const s4FullBars = (() => { const cells = document.querySelectorAll('#shapeCur .scell.on').length; const bars = document.querySelectorAll('#shapeCur .scell.on .arrow.bar').length; return cells > 0 && bars === cells; })();
+        return { ok: partialSeen && s3HasAxes && s4FullBars, partialSeen, s3HasAxes, s4FullBars };
+      })()`);
+      check('partial vs full axis rendering', r && r.ok, r && JSON.stringify(r));
+    }
+
+    check('no uncaught page exceptions', cl.errors.length === 0, cl.errors.join(' | '));
 
   } finally {
     if (cl) cl.close();
@@ -201,5 +181,4 @@ async function run() {
   if (failed) { console.log('FAILURES:'); for (const f of fails) console.log('  - ' + f); process.exit(1); }
   console.log('ALL FUNCTIONAL TESTS PASSED');
 }
-
 run().catch(e => { console.error('HARNESS ERROR:', e.message); if (previewProc) previewProc.kill('SIGKILL'); process.exit(2); });

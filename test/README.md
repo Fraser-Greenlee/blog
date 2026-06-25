@@ -1,23 +1,20 @@
 # Shift Puzzle tests
 
-Two suites guard the game at `public/shift-puzzle/index.html`:
+The game (`public/shift-puzzle/index.html`) is candy SHAPE modes only (S1–S5):
+Shapes (easy), Shapes, Shapes + axis (partial), Shapes + axis, Two shapes.
 
-- **`engine.test.mjs`** — fast, no browser. Extracts the page's pure logic (the
-  Web Worker generator + main-thread geometry) and checks the core invariants:
-  move algebra, worker/main parity, exact-optimal generation, the turn-on-exit
-  rotation rule, the centre spin, and shape feasibility (colour-count
-  sufficiency). Run: `npm run test:engine`.
+- **`engine.test.mjs`** — fast, no browser. Extracts the page's pure functions
+  (geometry, move algebra, shape generation) and checks the invariants:
+  move inverses, the turn-on-exit rotation rule + centre spin, shape feasibility
+  (colour-count sufficiency, no edge-wrap), per-mode target feasibility, the
+  partial-axis target structure, and dual distinct-colour generation.
+  Run: `npm run test:engine`.
 
-- **`functional.test.mjs`** — drives the *built* page in headless Chrome over the
-  DevTools Protocol. Covers behaviour the engine tests can't: solving every level
-  (L1–L15) to a win, a smoke pass over all candy modes (C1–C9), the repeatable
-  candy undo stack, out-of-moves undo recovery, and shape-target feasibility.
-  Requires Google Chrome at the macOS default path. Run: `npm run test:functional`
-  (it builds + previews itself), or pass a running server:
-  `node test/functional.test.mjs http://localhost:4321`.
+- **`functional.test.mjs`** — drives the *built* page in headless Chrome (CDP):
+  the dropdown is exactly S1–S5, each mode loads/plays/stays feasible, the
+  repeatable candy undo stack, out-of-moves undo recovery, dual clears both
+  shapes, and partial-vs-full axis rendering. Requires Google Chrome at the
+  macOS default path. Run: `npm run test:functional` (builds + previews itself),
+  or pass a running server: `node test/functional.test.mjs http://localhost:4321`.
 
 Run both with `npm test`.
-
-When you change the rotation rule, generation, or candy logic, run these — they
-have already caught real regressions (and one wrong test assumption about 6×6
-rings, which aren't co-periodic).
