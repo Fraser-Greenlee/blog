@@ -8,7 +8,10 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test:engine": "node --max-old-space-size=2048 test/engine.test.mjs",
+    "test:functional": "node --max-old-space-size=2048 test/functional.test.mjs",
+    "test": "node --max-old-space-size=2048 test/engine.test.mjs && node --max-old-space-size=2048 test/functional.test.mjs"
   },
   "repository": {
     "type": "git",
