@@ -1,6 +1,6 @@
 ---
-title: "A pipeline parallelism that gets better with scale"
-description: "Standard pipeline parallelism wastes GPUs on idle time and ships gradients across the slowest link in the system. I tried cutting the gradients entirely, so each rack trains its own slice on a local loss. At 1B params it's slightly worse. At 13B it's 15% better."
+title: "A cheaper pipeline parallelism that holds up at scale"
+description: "Standard pipeline parallelism wastes GPUs on idle time and ships gradients across the slowest link in the system. I tried cutting the gradients entirely, so each rack trains its own slice on a local loss. It moves an order of magnitude less data, never stalls, and at 13B it trains a better model than the standard method on the same budget."
 date: 2026-06-26
 categories: ["machine-learning", "distributed-training"]
 draft: false
@@ -26,7 +26,7 @@ Both costs get worse as models get bigger, because bigger models need more racks
 
 So I tried removing them. Give each rack its own copy of a small output head and have it train its slice on its own next-token loss. Crucially, put a stop-gradient on every activation that crosses a rack boundary. No gradient ever travels backward across a link. Each rack just does its own forward pass, its own backward pass, and its own optimizer step, then passes its output forward and forgets about it.
 
-I'll call it block-wise local training. The question is whether a model trained this way is any good, since you've thrown away most of the gradient signal that normally ties the layers together.
+I'll call it block-wise local training. The case for it has two parts. The first is cheap to establish and hard to argue with: it costs far less to run. The second is the real question: whether a model trained this way is any good, since you've thrown away most of the gradient signal that normally ties the layers together. The honest answer there is more interesting than a yes or no.
 
 <iframe src="/figures/blt-bubble.html" width="100%" height="320" style="border: none; overflow: hidden;" />
 
@@ -38,45 +38,53 @@ The traffic nearly vanishes too. Each rack still sends its activations forward, 
 
 It also uses less memory, because a rack only holds one batch of activations in flight instead of one per pipeline stage.
 
-So it's cheaper on every axis that matters at scale. The only question left is quality.
+These three wins are structural. They are properties of the schedule, not of the optimizer, so they hold at step one and at step a million, at 1B and at 1T. None of them depend on the quality question at all. If the model trained this way is even close to as good, you take the deal. So: is it?
 
-## What it costs in quality
+## Is the model any good?
 
-I trained the same model both ways at four sizes (1B, 3B, 7B, 13B parameters), holding everything else fixed: same data, same order, same seed, same optimizer, same wall-clock budget. Then I compared validation loss.
+I trained the same model both ways at four sizes (1B, 3B, 7B, 13B parameters), holding everything else fixed: same data, same order, same seed, same optimizer, same budget. Then I compared validation loss.
 
 <iframe src="/figures/blt-gap.html" width="100%" height="360" style="border: none; overflow: hidden;" />
 
-At 1B the local method is 1.5% worse, which is what you'd expect from throwing away gradient information. But the penalty shrinks as the model grows, crosses zero somewhere past 1B, and by 13B the local method is 15% *better*. The trend is the same whether you compare at equal training time or equal tokens seen.
-
-The 13B run is worth looking at directly.
+At 1B the local method is 1.5% worse, which is what you'd expect from throwing away gradient information. The penalty shrinks as the model grows, crosses zero past 1B, and by 13B the local method is 15% *better* on the same budget. The 13B result holds whether you compare at equal training time or equal tokens. In fact the standard method processed *more* tokens in the same time, 10.3 billion to the local method's 9.7, and still ended up with higher loss, so this isn't the local method winning by being faster.
 
 <iframe src="/figures/blt-13b.html" width="100%" height="320" style="border: none; overflow: hidden;" />
 
-The left panel is loss against tokens, the right is loss against wall-clock. The local method is below the baseline on both. The detail I find most convincing is in the left panel: the standard method actually processed *more* tokens in the same time, 10.3 billion to the local method's 9.7, and still ended up with higher loss. So this isn't the local method winning by being faster. At equal tokens it's still ahead by the same margin. It is learning more per token.
+That looks like a clean "gets better with scale" story. But there's a confound I have to deal with before I'm allowed to tell it.
 
-## Why this might happen
+## The honest problem
 
-Here is a guess. A small model has too few layers to specialize, so every layer does a bit of everything and the layers are tightly coupled. Cut between two tightly-coupled layers and the gradient you discarded was doing real work; the model suffers. A large model has room to specialize. Early layers encode, middle layers compute, late layers decode, and the boundaries between those roles are natural seams. Cut along a seam and the discarded gradient was barely holding anything together; the cut is nearly free.
+None of these runs is trained to the point of diminishing returns. The compute-optimal token budget for a model is roughly twenty tokens per parameter; my best-trained run saw under two, and most saw far less. So every model here is under-trained, and a skeptic has a clean objection: maybe the local method only helps while a model is under-trained, and bigger models in my sweep are simply more under-trained, so they sit further out on the part of the curve where the local method looks good. Under that story the advantage is a mirage that would vanish if I trained to convergence.
 
-There's a weak signal for this in the data. The local method gives each rack its own output head, and you can ask how much worse the shallowest rack's head is than the deepest. If early layers produced useless features, that gap would be large. At 1B it's 0.29 nats; from 3B up it collapses to around 0.1. Bigger models make each rack's output independently useful, which is what the specialization story predicts.
+The objection is sharp because, in my data, the most-trained model is the 1B, and the 1B is exactly where the local method loses. The more training a run got, the worse the local method did. That is precisely the pattern the skeptic predicts.
 
-I want to be honest that this is a guess. There's a competing explanation that four data points can't fully rule out: maybe the local method just wins when models are under-trained, and bigger models are more under-trained at a fixed budget. Settling it needs a controlled sweep I haven't run.
+So I can't separate the two stories from the headline numbers alone. But I can separate them another way. Both stories make a different prediction about what happens at *matched training progress*. If the advantage is purely about under-training, then plotting the gap against tokens-per-parameter should collapse every model onto one curve: same progress, same gap, regardless of size. If instead the advantage is about size, the curves should stay separated and ordered by size at every level of progress.
 
-## What it might do at frontier scale
+<iframe src="/figures/blt-scale-vs-undertraining.html" width="100%" height="380" style="border: none; overflow: hidden;" />
 
-The trend points somewhere interesting, so it's worth extrapolating, with the caveat that this is a line through four points and nothing more.
+They stay separated, and ordered by size. At the same tokens-per-parameter, the bigger model has the bigger advantage, by as much as fifteen points. That is the signal the under-training story cannot produce, and it is the one piece of evidence here I'd actually defend: it points at a real effect of scale.
 
-<iframe src="/figures/blt-extrapolation.html" width="100%" height="360" style="border: none; overflow: hidden;" />
+I won't oversell it. Two things in this same plot cut the other way. The 3B line drifts toward zero as it trains, so some of the edge does decay with training, at least at that size. And no run here gets past 0.7 tokens-per-parameter, a few percent of compute-optimal, so I simply cannot see what happens near convergence. The 13B line is flat over the range I have, with no sign of decay, but "no sign yet" is not "won't."
 
-The fit says the advantage keeps growing: past 20% at 70B, past 30% beyond a few hundred billion. I don't believe the exact numbers. What I believe is the direction, and the direction is the whole point. The method gets better, relative to the standard one, exactly where the standard one gets most expensive. At frontier scale you split across many racks, the idle fraction balloons, and the gradient traffic across slow links dominates. That is precisely where a method with no global backward pass and no bubble has the most to offer.
+## Why it might be about size
+
+If it is scale, here's the mechanism I'd bet on. A small model has too few layers to specialize, so every layer does a bit of everything and adjacent layers are tightly coupled. Cut between two tightly-coupled layers and the gradient you discarded was doing real work; the model suffers. A large model has room to specialize. Early layers encode, middle layers compute, late layers decode, and the boundaries between those roles are natural seams. Cut along a seam and the discarded gradient was barely holding anything together; the cut is nearly free.
+
+There's a second signal for this. The local method gives each rack its own output head, so you can ask how much worse the shallowest rack's head is than the deepest. If early layers produced useless features, that gap would be large. At 1B it's 0.29 nats; from 3B up it collapses to around 0.1. Bigger models make each rack's output independently decodable, which is what the specialization story predicts, and it's measured at matched progress so it doesn't suffer the under-training confound.
 
 ## A bonus, for inference
 
 The same structure helps generation. Because every rack can decode its own slice's output, you can sample as a wavefront: rack 0 starts the next token the moment it's handed off the current one, without waiting for the deeper racks. The pipeline stays full instead of draining between tokens, so decode throughput scales with rack count rather than being bubble-limited. And every intermediate rack already has an output head, which is a ready-made draft model for speculative decoding, free. I haven't benchmarked this end to end; it's a projection from the training-side numbers.
 
-## What I'm claiming
+## What I'm claiming, and what I'm not
 
-Most cheap-training tricks look great on a 1B toy and fall apart at scale. This one does the opposite: slightly worse at 1B, clearly better at 13B, while moving an order of magnitude less data over the link that bottlenecks real systems. Whether it holds past 13B is the open question, but it's the question worth a frontier-scale experiment. If it holds, you get a training method that is cheaper, tolerant of slow links, free of the idle bubble, and better, all at once, and most at the scale where the alternative hurts most.
+What I'm confident about: the method is much cheaper to run, by properties of the schedule that don't depend on anything subtle. An order of magnitude less data over the slow link, no idle bubble, less memory. Those are the reasons to care, and they get more valuable as you add racks.
+
+What I'm claiming carefully: at the four sizes I tested, on matched budgets, the local method goes from slightly worse at 1B to clearly better at 13B, and the advantage is ordered by model size even after controlling for how far each run trained. That's real, and it's the opposite of how cheap-training tricks usually behave, which is to look good on a 1B toy and collapse at scale.
+
+What I'm not claiming: that this survives training to convergence. Every run here is far short of compute-optimal, one of my sizes shows the gap decaying with training, and I have no data near the regime a production run would actually use. The honest experiment that would settle it is to fix one size and train both methods to twenty tokens per parameter. I haven't run it.
+
+So this isn't a result, it's a reason to run that experiment. But it's a good one: a parallelism scheme that is strictly cheaper to operate and, across every size I could afford, does no worse and usually better. If that holds up where it matters, it's worth a great deal, and most where the standard method hurts most.
 
 ---
 
