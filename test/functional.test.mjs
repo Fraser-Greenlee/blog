@@ -71,7 +71,9 @@ async function run() {
     const opts = await cl.ev(`[...document.getElementById('difficulty').options].map(o => o.value)`);
     check('dropdown = S1..S5', JSON.stringify(opts) === JSON.stringify(['S1', 'S2', 'S3', 'S4', 'S5']), JSON.stringify(opts));
 
-    // A. each mode loads, plays 10 moves, stays full + feasible, no exception
+    // A. each mode loads, plays 10 moves, stays full + feasible, no exception.
+    //    Single-shape modes (S1-S4) carry ONE target (candyNextTarget is null);
+    //    only dual (S5) carries a second live target.
     for (const S of ['S1', 'S2', 'S3', 'S4', 'S5']) {
       const r = await cl.ev(`(async () => {
         els.difficulty.value = '${S}'; applyDifficulty('${S}'); await ${SETTLE};
@@ -79,8 +81,10 @@ async function run() {
         for (let i = 0; i < 10; i++) { doMove(['U','D','L','R','CW','CCW'][(Math.random()*6)|0]); await ${SETTLE}; }
         const cnt = {}; for (const v of state) if (v) { const c = decC(v); cnt[c] = (cnt[c]||0)+1; }
         const feasT = (cnt[candyTarget.C]||0) >= candyTarget.shape.length;
-        const feasN = (cnt[candyNextTarget.C]||0) >= candyNextTarget.shape.length;
-        return { ok: state.every(v => v !== 0) && feasT && feasN, match: candyCfg.match };
+        const dual = candyCfg.match === 'dual';
+        const nextOk = dual ? (candyNextTarget && (cnt[candyNextTarget.C]||0) >= candyNextTarget.shape.length)
+                            : candyNextTarget === null;
+        return { ok: state.every(v => v !== 0) && feasT && nextOk, match: candyCfg.match };
       })()`);
       check(`${S} loads, plays, feasible`, r && r.ok, r && r.why);
     }
@@ -167,6 +171,41 @@ async function run() {
         return { ok: partialSeen && s3HasAxes && s4FullBars, partialSeen, s3HasAxes, s4FullBars };
       })()`);
       check('partial vs full axis rendering', r && r.ok, r && JSON.stringify(r));
+    }
+
+    // F. no preview slot in single-shape modes; the next slot is shown only in dual
+    {
+      const r = await cl.ev(`(async () => {
+        els.difficulty.value = 'S2'; applyDifficulty('S2'); await ${SETTLE};
+        const nextHidden = getComputedStyle(document.querySelector('.shape-slot.next')).display === 'none';
+        const arrowHidden = getComputedStyle(document.getElementById('shapeArrow')).display === 'none';
+        const oneTarget = candyNextTarget === null;
+        els.difficulty.value = 'S5'; applyDifficulty('S5'); await ${SETTLE};
+        const nextShown = getComputedStyle(document.querySelector('.shape-slot.next')).display !== 'none';
+        return { ok: nextHidden && arrowHidden && oneTarget && nextShown, nextHidden, arrowHidden, oneTarget, nextShown };
+      })()`);
+      check('single-shape modes drop the next preview', r && r.ok, r && JSON.stringify(r));
+    }
+
+    // G. every target is reachable within the moves the player has AT BIRTH — i.e.
+    //    on a fresh board (and, by the same generator, after each clear). This is
+    //    the real no-forced-loss guarantee: from where a target appears, it's
+    //    solvable in budget. (Mid-segment drift can strand it momentarily, but undo
+    //    refunds moves back to birth, so the run is never an unavoidable loss.)
+    {
+      const r = await cl.ev(`(async () => {
+        let worst = null;
+        for (const S of ['S1','S2','S3','S4']) {
+          els.difficulty.value = S; applyDifficulty(S); await ${SETTLE};
+          for (let i = 0; i < 40 && !worst; i++) {
+            document.getElementById('resetBtn').click(); await ${SETTLE};
+            if (!reachableWithin(state, candyTarget, candyCfg.size, candyMoves)) worst = { S, i, moves: candyMoves };
+          }
+          if (worst) break;
+        }
+        return { ok: worst === null, worst };
+      })()`);
+      check('fresh target reachable within starting moves', r && r.ok, r && JSON.stringify(r.worst));
     }
 
     check('no uncaught page exceptions', cl.errors.length === 0, cl.errors.join(' | '));

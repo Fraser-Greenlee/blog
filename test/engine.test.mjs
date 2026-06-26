@@ -26,7 +26,7 @@ const makeApi = new Function(`
   return {
     buildPerms, edgeMask, applyMove, applyPerm, decC, decO, rotCell,
     findShape, randomShape, ensureTarget, makeAxisTarget, ensureDualTargets,
-    bothPresent, candyGravity, candySpawn, candyCell,
+    bothPresent, candyGravity, candySpawn, candyCell, shapeDist, reachableWithin,
     setPerms: v => perms = v, setEdge: v => edge = v, setOriented: v => oriented = v,
     setCfg: v => candyCfg = v, getCfg: () => candyCfg,
   };
@@ -125,6 +125,27 @@ for (const cfg of [
     total++; if (cnt < tg.shape.length) bad++;
   }
   check(`ensureTarget feasible [${cfg.match}${cfg.partialAxis ? ' partial' : ''}]`, bad === 0, `${bad}/${total} infeasible`);
+}
+
+// 4b. budget-aware ensureTarget: when given a move budget, the target it returns
+//     is solvable within that budget (never a forced loss). Uses each mode's real
+//     starting budget. The colour-count fallback (a straight line) is always
+//     reachable, so even a tight budget yields a solvable target.
+for (const cfg of [
+  { match: 'shape', shapeMin: 2, shapeMax: 3, moves: 12 },
+  { match: 'shape', shapeMin: 3, shapeMax: 4, moves: 10 },
+  { match: 'shapeA', shapeMin: 3, shapeMax: 4, partialAxis: true, moves: 11 },
+  { match: 'shapeA', shapeMin: 3, shapeMax: 4, partialAxis: false, moves: 11 },
+]) {
+  const n = 3; api.setCfg({ candy: true, size: n, colors: 3, ...cfg });
+  api.setPerms(api.buildPerms(n)); api.setEdge(api.edgeMask(n));
+  let bad = 0, total = 0;
+  for (let t = 0; t < 200; t++) {
+    const b = new Uint8Array(n * n); for (let i = 0; i < n * n; i++) b[i] = api.candySpawn();
+    const tg = api.ensureTarget(b, n, -1, cfg.moves);
+    total++; if (!api.reachableWithin(b, tg, n, cfg.moves)) bad++;
+  }
+  check(`ensureTarget within budget [${cfg.match}${cfg.partialAxis ? ' partial' : ''}]`, bad === 0, `${bad}/${total} over budget`);
 }
 
 // 5. Partial-axis structure

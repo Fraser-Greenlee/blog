@@ -102,15 +102,17 @@
   .target-block { text-align: center; margin-bottom: 1rem; }
   .label { font-size: 0.74rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 0.4rem; }
 
-  /* ---- shape-mode targets (current + next preview) ---- */
+  /* ---- shape-mode targets ---- */
+  /* Single-shape modes show one target ("Make"); dual mode shows two equally
+     active targets joined by a "+". The second slot + arrow appear only in dual. */
   .shape-targets { display: none; align-items: center; justify-content: center; gap: 0.9rem; margin-bottom: 1rem; }
   .shape-targets.show { display: flex; }
   .shape-slot { text-align: center; }
-  .shape-slot.next { opacity: 0.7; }
-  /* In dual mode both targets are equally active, so don't dim the second. */
-  .shape-targets.dual .shape-slot.next { opacity: 1; }
+  .shape-slot.next, .shape-arrow { display: none; }
+  .shape-targets.dual .shape-slot.next { display: block; }
   .shape-targets.dual .shape-slot.next .shape-grid { --sc: 30px; }
   .shape-arrow { color: var(--muted); font-size: 1.3rem; align-self: center; margin-top: 0.9rem; }
+  .shape-targets.dual .shape-arrow { display: block; }
   /* Size shape previews by a fixed CELL size (not grid width), so a tall/narrow
      shape like a 1x3 vertical bar stays small in both dimensions and never
      pushes the board or move buttons off-screen. --sc is the per-cell size. */
@@ -316,8 +318,8 @@
     <span class="reset-stats" id="resetStats">reset stats</span>
   </div>
 
-  <!-- Shape-mode targets: the shape to make now + a preview of the next one.
-       In dual mode both must be present at once (labels become "Both"/"and"). -->
+  <!-- Shape-mode target: the single shape to make now. In dual mode a second
+       slot + "+" appear (labels become "Both"/"and"); CSS hides them otherwise. -->
   <div class="shape-targets" id="shapeTargets">
     <div class="shape-slot">
       <div class="label" id="shapeCurLabel">Make</div>
@@ -366,12 +368,12 @@
 
   <details class="help">
     <summary>How to play</summary>
-    <p>Form the coloured shape shown under <b>Make</b> anywhere it fits on the board. When you do, those candies clear, you earn moves, and the <b>Next</b> shape slides in. It's endless — chase a high score.</p>
+    <p>Form the coloured shape shown under <b>Make</b> anywhere it fits on the board. When you do, those candies clear, you earn moves, and a new shape appears — always one you can reach with the moves you have left. It's endless — chase a high score.</p>
     <p>The four <b>edge arrows</b> shift the whole board one step — candies that fall off one side wrap around to the other.</p>
     <p>The four <b>corner buttons</b> shift the candies one step <i>around each ring</i>: the <b>right</b> corners move them clockwise (&#8635;), the <b>left</b> corners anticlockwise (&#8634;). The centre candy of the 3×3 stays put.</p>
     <p>You have a limited number of <b>moves</b>: each move spends one and each shape you clear earns several back, so you have to keep clearing or the run ends. The move that <i>reverses</i> your last one is <b>highlighted</b> — tap it to undo (you get the move back); you can keep undoing back to your last clear, or <b>Reset</b> for a fresh run.</p>
     <p>The <b>+ axis</b> modes also require each candy's <b>bar</b> to lie the way the target shows — all upright or all sideways. A candy turns 90&deg; only as it <i>leaves a corner</i> of its ring (sliding along a straight edge keeps its facing; the centre spins with every ring move). In the <b>partial</b> variant only the cells that show a bar are constrained — the rest take any facing.</p>
-    <p>The <b>two shapes</b> mode shows two different-colour shapes you must form on the board <i>at the same time</i> to clear together. Every target is built from the colours actually on your board, so it's always achievable.</p>
+    <p>The <b>two shapes</b> mode shows two different-colour shapes you must form on the board <i>at the same time</i> to clear together. Every target is built from the colours actually on your board and checked to be reachable in the moves you have, so it's always achievable — never a forced loss.</p>
     <p>Keyboard: arrows shift, <b>Q</b>/<b>E</b> ring-shift, <b>R</b> reset, <b>N</b> new board.</p>
   </details>
 </div>
@@ -393,9 +395,10 @@ const PALETTE = ['#d97757', '#4a8fae', '#6aa84f', '#e0b341', '#9b6cc4', '#d65a7e
 const INV = { U: 'D', D: 'U', L: 'R', R: 'L', CW: 'CCW', CCW: 'CW' };
 
 /* Shape modes — an endless match game on a 3x3 board. Form the shown coloured
-   shape anywhere it fits and it clears, earns moves, and the next target slides
-   in. Targets are always generated from the colours actually on the board, so
-   they're always achievable. Shared fields:
+   shape anywhere it fits and it clears, earns moves, and a fresh target appears.
+   Targets are generated from the colours actually on the board AND checked to be
+   reachable within the moves the player has, so they're always achievable and
+   never a forced loss. Shared fields:
      match     'shape'  colour only | 'shapeA' axis-facing | 'dual' two-at-once
      shapeMin/shapeMax  shape size bounds (2-tile pairs reserved for "easy")
      partialAxis        (shapeA only) only SOME cells require an axis; the rest
@@ -612,11 +615,12 @@ function findShape(b, t, n) {
   return null;
 }
 // Min moves (BFS) until target t is present, capped; -1 if not found within cap.
-// No longer used for feasibility (colour-count is the exact criterion); kept as
-// a utility for hinting / tests. Oriented mode needs the real move set.
+// Used to keep generated targets reachable within the player's remaining moves.
+// Any facing constraint (exact O, single axis, or per-cell axes) needs the real
+// orientation-aware move set; a pure colour target can use plain permutations.
 function shapeDist(b, t, n, cap) {
   if (findShape(b, t, n)) return 0;
-  const useOrient = t.O != null;
+  const useOrient = t.O != null || t.axis != null || t.axes != null;
   let front = [b]; const seen = new Set([keyOf(b)]); let d = 0;
   while (front.length && d < cap) {
     d++; const nf = [];
@@ -630,6 +634,13 @@ function shapeDist(b, t, n, cap) {
     front = nf;
   }
   return -1;
+}
+// True if target t can be formed within `budget` moves (and isn't already done,
+// which would make it a trivial/zero-move target). Used to keep current targets
+// solvable in the moves the player actually has.
+function reachableWithin(b, t, n, budget) {
+  const d = shapeDist(b, t, n, Math.min(Math.max(1, budget), 9));
+  return d > 0 && d <= budget;
 }
 // Build an axis-facing target for a shape. Full axis: every cell must share one
 // axis (t.axis). Partial axis (cfg.partialAxis): only SOME cells require the
@@ -650,7 +661,10 @@ function makeAxisTarget(shape, C) {
 // target uses a different colour than the current one — since clearing the
 // current target only removes ITS colour, a different-coloured next stays
 // achievable when it later becomes current.
-function ensureTarget(b, n, avoidC) {
+// `budget` (optional) is the moves the player will have to reach this target:
+// we only accept candidates solvable within it, so a target is never a forced
+// loss. If none fits in the tries, we return the closest-reachable candidate.
+function ensureTarget(b, n, avoidC, budget) {
   const minSz = candyCfg.shapeMin || 3, maxSz = candyCfg.shapeMax || 4;
   const oriented = candyCfg.match === 'shapeO';   // strict facing
   const axisMode = candyCfg.match === 'shapeA';   // up/down vs left/right
@@ -678,6 +692,11 @@ function ensureTarget(b, n, avoidC) {
     }
     cnt = countCols(); cols = eligible(cnt);
   }
+  // Budget cap: how many moves can be spent reaching this target. Default high
+  // (effectively unlimited) when not given. We never demand more than the BFS
+  // depth we're willing to search.
+  const B = (budget == null) ? 99 : Math.max(1, budget);
+  let best = null, bestD = Infinity;
   for (let tries = 0; tries < 80; tries++) {
     const C = cols[(Math.random() * cols.length) | 0];
     const cap = Math.min(cnt[C], maxSz);
@@ -687,10 +706,14 @@ function ensureTarget(b, n, avoidC) {
     const t = oriented ? { shape, C, O: (Math.random() * 4) | 0 }
             : axisMode ? makeAxisTarget(shape, C)
             : { shape, C };
-    // Accept any non-trivial target whose colour has enough tiles (the proven
-    // feasibility criterion). cnt[C] >= sz holds by construction here.
-    if (!findShape(b, t, n)) return t;
+    if (findShape(b, t, n)) continue;        // reject already-satisfied (trivial)
+    // The colour has enough tiles (feasible in principle); now require it be
+    // reachable within the move budget so it's never a forced loss.
+    const d = shapeDist(b, t, n, Math.min(B, 9));
+    if (d > 0 && d <= B) return t;
+    if (d > 0 && d < bestD) { bestD = d; best = t; }  // keep the closest as fallback
   }
+  if (best) return best;                     // closest-reachable when none fit the budget
   // Fallback: a straight line in whichever colour has the most tiles, sized to
   // what that colour actually supports (never longer than the grid). Guaranteed
   // feasible because length <= colour count and a line is always reachable.
@@ -753,14 +776,11 @@ function candyResolveShape(b, n) {
     for (let i = 0; i < n * n; i++) if (s[i] === 0) s[i] = candySpawn();
     s = candyGravity(s, n);
     frames.push({ board: s.slice(), refill: true });
-    // Advance targets. We promote the preview to current only if it's still
-    // feasible on the settled board (enough tiles of its colour, reachable, not
-    // already present); otherwise we generate a fresh current. Then we always
-    // generate a fresh preview from the *current* board, avoiding the current
-    // colour so the next clear can't strand it. Generating against the live
-    // board is the only way to guarantee feasibility after random refills.
-    candyTarget = targetFeasible(s, candyNextTarget, n, true) ? candyNextTarget : ensureTarget(s, n, -1);
-    candyNextTarget = ensureTarget(s, n, candyTarget.C);
+    // Generate the next target, reachable within the budget the player will have
+    // when facing it: candyMoves (already -1 for this move) plus the grant this
+    // clear earns (candyMove applies exactly that after we return).
+    const budget = candyMoves + lines * candyCfg.grant;
+    candyTarget = ensureTarget(s, n, -1, budget);
   }
   return { frames, board: s, cleared, lines };
 }
@@ -856,11 +876,11 @@ function candyNewBoard(n) {
   for (let i = 0; i < n * n; i++) b[i] = candySpawn();
   b = candyGravity(b, n); // settle (shapes never clear on lines, so no resolve needed)
   if (isDualMode()) {
+    // dual shows two live targets (both must be present at once); no "next".
     const [a, bb] = ensureDualTargets(b, n); candyTarget = a; candyNextTarget = bb;
   } else {
-    // single-shape modes: seed the two live targets; next avoids current's colour.
-    candyTarget = ensureTarget(b, n, -1);
-    candyNextTarget = ensureTarget(b, n, candyTarget.C);
+    // single-shape modes: one target, reachable within the starting move budget.
+    candyTarget = ensureTarget(b, n, -1, candyCfg.moves); candyNextTarget = null;
   }
   return b;
 }
@@ -1075,16 +1095,20 @@ function renderShape(el, t) {
   }
 }
 
-// Candy mode view: no target preview (except shape mode, which shows the current
-// shape + a next preview); shows Score and remaining Moves; the resolve animation
+// Candy mode view: shape modes show the target ("Make"); dual mode shows two
+// targets joined by "+". Shows Score and remaining Moves; the resolve animation
 // highlights clearing cells; lose state when out of moves or three bad candies.
 function renderCandy(n) {
   const shapeMode = isShapeMode();
   const dual = isDualMode();
   els.shapeTargets.classList.toggle('show', shapeMode);
   els.shapeTargets.classList.toggle('dual', dual);
-  // Guarantee the displayed target(s) are achievable on the current board, so the
-  // player never even sees an impossible one. Skip mid-animation (transitional).
+  // Defensive guard: the target(s) must remain colour-feasible on the live board.
+  // Whole-board moves are permutations (colour counts invariant), so a target
+  // generated feasible STAYS feasible until it clears — this never fires mid-
+  // segment; it's a safety net. Within-budget reachability is guaranteed where a
+  // target is BORN (new board / post-clear), not re-derived from a drifted board:
+  // the player can always undo (refunding moves) back to that point. Skip mid-anim.
   if (shapeMode && !candyAnimating) {
     if (dual) {
       if (!targetFeasible(state, candyTarget, n) || !targetFeasible(state, candyNextTarget, n)
@@ -1092,15 +1116,17 @@ function renderCandy(n) {
         const [a, bb] = ensureDualTargets(state, n); candyTarget = a; candyNextTarget = bb;
       }
     } else {
-      if (!targetFeasible(state, candyTarget, n)) candyTarget = ensureTarget(state, n, -1);
-      if (!targetFeasible(state, candyNextTarget, n)) candyNextTarget = ensureTarget(state, n, candyTarget.C);
+      if (!targetFeasible(state, candyTarget, n)) candyTarget = ensureTarget(state, n, -1, candyMoves);
     }
   }
   if (shapeMode) {
-    renderShape(els.shapeCur, candyTarget); renderShape(els.shapeNext, candyNextTarget);
+    renderShape(els.shapeCur, candyTarget);
     els.shapeCurLabel.textContent = dual ? 'Both' : 'Make';
-    els.shapeNextLabel.textContent = dual ? 'and' : 'Next';
-    els.shapeArrow.textContent = dual ? '+' : '→';
+    if (dual) {
+      renderShape(els.shapeNext, candyNextTarget);
+      els.shapeNextLabel.textContent = 'and';
+      els.shapeArrow.textContent = '+';
+    }
   }
   els.playBoard.classList.remove('windowed', 'solved', 'atpar');
   els.playBoard.classList.add('candy');
@@ -1228,17 +1254,20 @@ function candyMove(move) {
   if (candyCanUndo() && move === candyUndoMoveName()) { candyUndoMove(); return; }
   if (candyLost) return;
 
-  // Invariant guard: whatever happened on prior moves, the target(s) must be
-  // achievable on the live board before the player acts. Moves preserve colour
-  // counts, so a feasible target here stays feasible until it clears.
+  // Invariant guard: the target(s) must stay colour-feasible on the live board.
+  // Moves are permutations, so this holds from generation until a clear — a
+  // safety net, not a regenerator. Within-budget solvability is guaranteed at the
+  // point each target is BORN (new board / post-clear, where a comfortable budget
+  // applies); drift never makes a run a forced loss because undo refunds moves
+  // back to that point. We don't re-derive within-budget here: at a drifted board
+  // with 1 move left no target may fit, yet the position is still recoverable.
   if (isDualMode()) {
     if (!targetFeasible(state, candyTarget, cfg.size) || !targetFeasible(state, candyNextTarget, cfg.size)
         || !dualReachable(state, candyTarget, candyNextTarget, cfg.size, 400000)) {
       const [a, bb] = ensureDualTargets(state, cfg.size); candyTarget = a; candyNextTarget = bb;
     }
   } else if (isShapeMode()) {
-    if (!targetFeasible(state, candyTarget, cfg.size)) candyTarget = ensureTarget(state, cfg.size, -1);
-    if (!targetFeasible(state, candyNextTarget, cfg.size)) candyNextTarget = ensureTarget(state, cfg.size, candyTarget.C);
+    if (!targetFeasible(state, candyTarget, cfg.size)) candyTarget = ensureTarget(state, cfg.size, -1, candyMoves);
   }
 
   // Push a snapshot (with the move that made it) so undo can step back to here.
