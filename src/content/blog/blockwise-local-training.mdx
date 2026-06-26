@@ -1,0 +1,83 @@
+---
+title: "A pipeline parallelism that gets better with scale"
+description: "Standard pipeline parallelism wastes GPUs on idle time and ships gradients across the slowest link in the system. I tried cutting the gradients entirely, so each rack trains its own slice on a local loss. At 1B params it's slightly worse. At 13B it's 15% better."
+date: 2026-06-26
+categories: ["machine-learning", "distributed-training"]
+draft: false
+---
+
+<script is:inline>{`
+window.addEventListener('message', e => {
+  if (e.data && e.data.iframeHeight) {
+    document.querySelectorAll('iframe').forEach(f => {
+      if (f.contentWindow === e.source || (e.data.src && f.src.includes(e.data.src))) {
+        f.style.height = (e.data.iframeHeight + 8) + 'px';
+      }
+    });
+  }
+});
+`}</script>
+
+To train a model too big for one GPU, you cut it into pieces. The usual cut is by depth: rack 0 gets the first ten layers, rack 1 the next ten, and so on. A batch flows forward through the racks, a loss is computed at the end, and gradients flow all the way back. This is pipeline parallelism, and it is how large models are trained.
+
+It has two costs. The first is idle time. A rack can't start the backward pass until the forward pass has reached the end and turned around, so racks sit waiting. The more racks you split across, the more of them are idle at any moment. The second cost is traffic. Every gradient has to travel back across every link between racks, and the links between racks are the slowest wires in the building.
+
+Both costs get worse as models get bigger, because bigger models need more racks.
+
+So I tried removing them. Give each rack its own copy of a small output head and have it train its slice on its own next-token loss. Crucially, put a stop-gradient on every activation that crosses a rack boundary. No gradient ever travels backward across a link. Each rack just does its own forward pass, its own backward pass, and its own optimizer step, then passes its output forward and forgets about it.
+
+I'll call it block-wise local training. The question is whether a model trained this way is any good, since you've thrown away most of the gradient signal that normally ties the layers together.
+
+<iframe src="/figures/blt-bubble.html" width="100%" height="320" style="border: none; overflow: hidden;" />
+
+## What it costs to run
+
+The idle time vanishes. After a one-step warmup every rack is busy every step, because no rack waits on a global backward pass that doesn't exist. On four racks I measured a 38% throughput gain at the same batch size, and the gain grows with rack count. The bubble in standard pipelining goes from a quarter of your GPUs idle at four racks to most of them idle at thirty-two.
+
+The traffic nearly vanishes too. Each rack still sends its activations forward, but it receives no gradients back. Over a fixed window the standard approach moved about 540 GB in each direction across the slow link. Block-wise local training received 38 GB, about fourteen times less. The one thing it must still share is the output head, which the racks average occasionally; in practice you can skip even that and just keep the last rack's copy.
+
+It also uses less memory, because a rack only holds one batch of activations in flight instead of one per pipeline stage.
+
+So it's cheaper on every axis that matters at scale. The only question left is quality.
+
+## What it costs in quality
+
+I trained the same model both ways at four sizes (1B, 3B, 7B, 13B parameters), holding everything else fixed: same data, same order, same seed, same optimizer, same wall-clock budget. Then I compared validation loss.
+
+<iframe src="/figures/blt-gap.html" width="100%" height="360" style="border: none; overflow: hidden;" />
+
+At 1B the local method is 1.5% worse, which is what you'd expect from throwing away gradient information. But the penalty shrinks as the model grows, crosses zero somewhere past 1B, and by 13B the local method is 15% *better*. The trend is the same whether you compare at equal training time or equal tokens seen.
+
+The 13B run is worth looking at directly.
+
+<iframe src="/figures/blt-13b.html" width="100%" height="320" style="border: none; overflow: hidden;" />
+
+The left panel is loss against tokens, the right is loss against wall-clock. The local method is below the baseline on both. The detail I find most convincing is in the left panel: the standard method actually processed *more* tokens in the same time, 10.3 billion to the local method's 9.7, and still ended up with higher loss. So this isn't the local method winning by being faster. At equal tokens it's still ahead by the same margin. It is learning more per token.
+
+## Why this might happen
+
+Here is a guess. A small model has too few layers to specialize, so every layer does a bit of everything and the layers are tightly coupled. Cut between two tightly-coupled layers and the gradient you discarded was doing real work; the model suffers. A large model has room to specialize. Early layers encode, middle layers compute, late layers decode, and the boundaries between those roles are natural seams. Cut along a seam and the discarded gradient was barely holding anything together; the cut is nearly free.
+
+There's a weak signal for this in the data. The local method gives each rack its own output head, and you can ask how much worse the shallowest rack's head is than the deepest. If early layers produced useless features, that gap would be large. At 1B it's 0.29 nats; from 3B up it collapses to around 0.1. Bigger models make each rack's output independently useful, which is what the specialization story predicts.
+
+I want to be honest that this is a guess. There's a competing explanation that four data points can't fully rule out: maybe the local method just wins when models are under-trained, and bigger models are more under-trained at a fixed budget. Settling it needs a controlled sweep I haven't run.
+
+## What it might do at frontier scale
+
+The trend points somewhere interesting, so it's worth extrapolating, with the caveat that this is a line through four points and nothing more.
+
+<iframe src="/figures/blt-extrapolation.html" width="100%" height="360" style="border: none; overflow: hidden;" />
+
+The fit says the advantage keeps growing: past 20% at 70B, past 30% beyond a few hundred billion. I don't believe the exact numbers. What I believe is the direction, and the direction is the whole point. The method gets better, relative to the standard one, exactly where the standard one gets most expensive. At frontier scale you split across many racks, the idle fraction balloons, and the gradient traffic across slow links dominates. That is precisely where a method with no global backward pass and no bubble has the most to offer.
+
+## A bonus, for inference
+
+The same structure helps generation. Because every rack can decode its own slice's output, you can sample as a wavefront: rack 0 starts the next token the moment it's handed off the current one, without waiting for the deeper racks. The pipeline stays full instead of draining between tokens, so decode throughput scales with rack count rather than being bubble-limited. And every intermediate rack already has an output head, which is a ready-made draft model for speculative decoding, free. I haven't benchmarked this end to end; it's a projection from the training-side numbers.
+
+## What I'm claiming
+
+Most cheap-training tricks look great on a 1B toy and fall apart at scale. This one does the opposite: slightly worse at 1B, clearly better at 13B, while moving an order of magnitude less data over the link that bottlenecks real systems. Whether it holds past 13B is the open question, but it's the question worth a frontier-scale experiment. If it holds, you get a training method that is cheaper, tolerant of slow links, free of the idle bubble, and better, all at once, and most at the scale where the alternative hurts most.
+
+---
+
+*Trained on fineweb-edu across 4 nodes of 8×H100. Code, logs, and the scripts behind every figure are [on GitHub](https://github.com/Fraser-Greenlee).*
