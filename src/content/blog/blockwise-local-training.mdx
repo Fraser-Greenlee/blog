@@ -62,7 +62,7 @@ So I can't separate the two stories from the headline numbers alone. But I can s
 
 <iframe src="/figures/blt-scale-vs-undertraining.html" width="100%" height="380" style="border: none; overflow: hidden;" />
 
-They stay separated, and ordered by size. At the same tokens-per-parameter, the bigger model has the bigger advantage, by as much as fifteen points. That is the signal the under-training story cannot produce, and it is the one piece of evidence here I'd actually defend: it points at a real effect of scale.
+They stay separated, and ordered by size. At the same tokens-per-parameter, the bigger model has the bigger advantage, by as much as fifteen points. That is the signal the under-training story cannot produce, and it is the one piece of evidence here I'd actually defend: it points at a real effect of scale. (The 7B run is left off this plot; it only reached a seventh of the training the others did, too short an overlap to read a trend from.)
 
 I won't oversell it. Two things in this same plot cut the other way. The 3B line drifts toward zero as it trains, so some of the edge does decay with training, at least at that size. And no run here gets past 0.7 tokens-per-parameter, a few percent of compute-optimal, so I simply cannot see what happens near convergence. The 13B line is flat over the range I have, with no sign of decay, but "no sign yet" is not "won't."
 
