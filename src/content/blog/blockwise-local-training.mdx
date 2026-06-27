@@ -26,7 +26,7 @@ Both costs get worse as models get bigger, because bigger models need more racks
 
 So I tried removing them. Give each rack its own copy of a small output head and have it train its slice on its own next-token loss. Crucially, put a stop-gradient on every activation that crosses a rack boundary. No gradient ever travels backward across a link. Each rack just does its own forward pass, its own backward pass, and its own optimizer step, then passes its output forward and forgets about it.
 
-I'll call it block-wise local training. The case for it has two parts. The first is cheap to establish and hard to argue with: it costs far less to run. The second is the real question: whether a model trained this way is any good, since you've thrown away most of the gradient signal that normally ties the layers together. The honest answer there is more interesting than a yes or no.
+I'll call it block-wise local training. That it costs less to run is easy to show. Whether the model is any good, after throwing away most of the gradient signal that ties the layers together, is the real question, and the answer is more interesting than yes or no.
 
 <iframe src="/figures/blt-bubble.html" width="100%" height="320" style="border: none; overflow: hidden;" />
 
@@ -54,17 +54,17 @@ That looks like a clean "gets better with scale" story. But there's a confound I
 
 ## The honest problem
 
-None of these runs is trained to the point of diminishing returns. The compute-optimal token budget for a model is roughly twenty tokens per parameter; my best-trained run saw under two, and most saw far less. So every model here is under-trained, and a skeptic has a clean objection: maybe the local method only helps while a model is under-trained, and bigger models in my sweep are simply more under-trained, so they sit further out on the part of the curve where the local method looks good. Under that story the advantage is a mirage that would vanish if I trained to convergence.
+None of these runs is trained to the point of diminishing returns. Compute-optimal is roughly twenty tokens per parameter; my best-trained run saw under two. So a skeptic has a clean objection: maybe the local method only helps while a model is under-trained, and bigger models in my sweep are simply more under-trained. The advantage would then be a mirage that vanishes at convergence.
 
-The objection is sharp because, in my data, the most-trained model is the 1B, and the 1B is exactly where the local method loses. The more training a run got, the worse the local method did. That is precisely the pattern the skeptic predicts.
+The objection bites because the most-trained model I have is the 1B, and the 1B is exactly where the local method loses. The more a run trained, the worse it did. That is the skeptic's pattern.
 
-So I can't separate the two stories from the headline numbers alone. But I can separate them another way. Both stories make a different prediction about what happens at *matched training progress*. If the advantage is purely about under-training, then plotting the gap against tokens-per-parameter should collapse every model onto one curve: same progress, same gap, regardless of size. If instead the advantage is about size, the curves should stay separated and ordered by size at every level of progress.
+The headline numbers can't separate the two stories, but a different cut can. The two predict different things at *matched training progress*. Plot the gap against tokens-per-parameter: if it's under-training, every model collapses onto one curve; if it's size, the curves stay separated and ordered by size.
 
 <iframe src="/figures/blt-scale-vs-undertraining.html" width="100%" height="380" style="border: none; overflow: hidden;" />
 
-They stay separated, and ordered by size. At the same tokens-per-parameter, the bigger model has the bigger advantage, by as much as fifteen points. That is the signal the under-training story cannot produce, and it is the one piece of evidence here I'd actually defend: it points at a real effect of scale.
+They separate, ordered by size, by as much as fifteen points. Under-training can't produce that, and it's the one piece of evidence here I'd defend: the effect is about scale.
 
-I won't oversell it. Two things in this same plot cut the other way. The 3B line drifts toward zero as it trains, so some of the edge does decay with training, at least at that size. And no run here gets past 0.7 tokens-per-parameter, a few percent of compute-optimal, so I simply cannot see what happens near convergence. The 13B line is flat over the range I have, with no sign of decay, but "no sign yet" is not "won't."
+I won't oversell it. The same plot cuts both ways. The 3B line drifts toward zero as it trains, so some of the edge does decay. And nothing here passes 0.7 tokens per parameter, so I cannot see convergence. The 13B line is flat over the range I have, but "no sign yet" is not "won't."
 
 ## Why it might be about size
 
@@ -82,9 +82,9 @@ What I'm confident about: the method is much cheaper to run, by properties of th
 
 What I'm claiming carefully: at the four sizes I tested, on matched budgets, the local method goes from slightly worse at 1B to clearly better at 13B, and the advantage is ordered by model size even after controlling for how far each run trained. That's real, and it's the opposite of how cheap-training tricks usually behave, which is to look good on a 1B toy and collapse at scale.
 
-What I'm not claiming: that this survives training to convergence. Every run here is far short of compute-optimal, one of my sizes shows the gap decaying with training, and I have no data near the regime a production run would actually use. The honest experiment that would settle it is to fix one size and train both methods to twenty tokens per parameter. I haven't run it.
+What I'm not claiming: that this survives to convergence. Every run is far short of compute-optimal, one size shows the gap decaying, and no run reaches the regime a production model would use. The experiment that settles it is to fix one size and train both methods to twenty tokens per parameter. I haven't run it.
 
-So this isn't a result, it's a reason to run that experiment. But it's a good one: a parallelism scheme that is strictly cheaper to operate and, across every size I could afford, does no worse and usually better. If that holds up where it matters, it's worth a great deal, and most where the standard method hurts most.
+So this isn't a result, it's a reason to run that experiment. But it's a good one. A parallelism scheme that is strictly cheaper to operate, and across every size I could afford does no worse and usually better, is worth chasing down.
 
 ---
 
