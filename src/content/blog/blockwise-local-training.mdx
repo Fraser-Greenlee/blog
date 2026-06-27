@@ -18,13 +18,13 @@ window.addEventListener('message', e => {
 });
 `}</script>
 
-To train a model too big for one GPU, you cut it into pieces. The usual cut is by depth: rack 0 gets the first ten layers, rack 1 the next ten, and so on. A batch flows forward through the racks, a loss is computed at the end, and gradients flow all the way back. This is pipeline parallelism, and it is how large models are trained.
+A frontier model is too big to train on one chip, or even one rack of chips. So it is [cut up and spread across racks](https://youtu.be/xmkSf5IS-zw?t=1929). One way to cut it is by depth: rack 0 holds the first chunk of layers, rack 1 the next, and so on. A batch flows forward through the racks, a loss is computed at the end, and gradients flow all the way back. This is pipeline parallelism.
 
 It has two costs. The first is idle time. A rack can't start the backward pass until the forward pass has reached the end and turned around, so racks sit waiting. The more racks you split across, the more of them are idle at any moment. The second cost is traffic. Every gradient has to travel back across every link between racks, and the links between racks are the slowest wires in the building.
 
-Both costs get worse as models get bigger, because bigger models need more racks.
+Both costs grow with model size, since bigger models need more racks. They are well known; it's why Ilya Sutskever said ["we now know not to do pipeline parallelism,"](https://youtu.be/xmkSf5IS-zw?t=3817) and why the labs lean on it as little as they can. But depth-splitting is the natural thing to reach for when a model won't fit, so the question is whether you can keep the split and drop the costs.
 
-So I tried removing them. Give each rack its own copy of a small output head and have it train its slice on its own next-token loss. Crucially, put a stop-gradient on every activation that crosses a rack boundary. No gradient ever travels backward across a link. Each rack just does its own forward pass, its own backward pass, and its own optimizer step, then passes its output forward and forgets about it.
+So I tried removing them at the source. Give each rack its own copy of a small output head and have it train its slice on its own next-token loss. Crucially, put a stop-gradient on every activation that crosses a rack boundary. No gradient ever travels backward across a link. Each rack just does its own forward pass, its own backward pass, and its own optimizer step, then passes its output forward and forgets about it.
 
 I'll call it block-wise local training. That it costs less to run is easy to show. Whether the model is any good, after throwing away most of the gradient signal that ties the layers together, is the real question, and the answer is more interesting than yes or no.
 
@@ -54,7 +54,7 @@ That looks like a clean "gets better with scale" story. But there's a confound I
 
 ## The honest problem
 
-None of these runs is trained to the point of diminishing returns. Compute-optimal is roughly twenty tokens per parameter; my best-trained run saw under two. So a skeptic has a clean objection: maybe the local method only helps while a model is under-trained, and bigger models in my sweep are simply more under-trained. The advantage would then be a mirage that vanishes at convergence.
+None of these runs is trained to the point of diminishing returns. Compute-optimal is roughly twenty tokens per parameter; my best-trained run saw under two. And real frontier models now train [far past even that, perhaps 100x over Chinchilla](https://youtu.be/xmkSf5IS-zw?t=4739), to squeeze more from a fixed model size. So a skeptic has a clean objection: maybe the local method only helps while a model is under-trained, and bigger models in my sweep are simply more under-trained. The advantage would then be a mirage that vanishes at convergence.
 
 The objection bites because the most-trained model I have is the 1B, and the 1B is exactly where the local method loses. The more a run trained, the worse it did. That is the skeptic's pattern.
 
@@ -88,4 +88,4 @@ So this isn't a result, it's a reason to run that experiment. But it's a good on
 
 ---
 
-*Trained on fineweb-edu across 4 nodes of 8×H100. Code, logs, and the scripts behind every figure are [on GitHub](https://github.com/Fraser-Greenlee).*
+*Trained on fineweb-edu across 4 nodes of 8×H100. Code, logs, and the scripts behind every figure are [on GitHub](https://github.com/Fraser-Greenlee). The framing of how frontier models are trained and served is from [Reiner Pope's lecture with Dwarkesh Patel](https://youtu.be/xmkSf5IS-zw).*
