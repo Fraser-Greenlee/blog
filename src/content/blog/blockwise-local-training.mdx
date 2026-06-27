@@ -1,6 +1,6 @@
 ---
-title: "A cheaper pipeline parallelism that holds up at scale"
-description: "Standard pipeline parallelism wastes GPUs on idle time and ships gradients across the slowest link in the system. I tried cutting the gradients entirely, so each rack trains its own slice on a local loss. It moves an order of magnitude less data, never stalls, and at 13B it trains a better model than the standard method on the same budget."
+title: "Cheaper pipeline parallelism that holds up at scale"
+description: "Pipeline parallelism wastes GPUs on idle time and ships gradients across the slowest link in the system. What if each rack just predicted the next token from its own layers instead of doing the full-stack backward pass? On its own it hurts, but a few private decoder layers per rack fix that. It moves an order of magnitude less data, never stalls, and at 13B it trains a better model than the standard method on the same budget."
 date: 2026-06-26
 categories: ["machine-learning", "distributed-training"]
 draft: false
@@ -24,9 +24,11 @@ It has two costs. The first is idle time. A rack can't start the backward pass u
 
 Both costs grow with model size, since bigger models need more racks. They are well known; it's why Ilya Sutskever said ["we now know not to do pipeline parallelism,"](https://youtu.be/xmkSf5IS-zw?t=3817) and why the labs lean on it as little as they can. But depth-splitting is the natural thing to reach for when a model won't fit, so the question is whether you can keep the split and drop the costs.
 
-So I tried removing them at the source. Give each rack its own copy of a small output head and have it train its slice on its own next-token loss. Crucially, put a stop-gradient on every activation that crosses a rack boundary. No gradient ever travels backward across a link. Each rack just does its own forward pass, its own backward pass, and its own optimizer step, then passes its output forward and forgets about it.
+The idea is simple: stop doing the full-stack backward pass, and have each rack predict the next token from its own slice. Each rack gets a copy of the output head, computes a next-token loss on its own layers' output, and backpropagates only into itself. The activation it passes to the next rack is detached, so no gradient ever crosses a rack boundary. No round trip, no bubble, almost nothing on the slow link.
 
-I'll call it block-wise local training. That it costs less to run is easy to show. Whether the model is any good, after throwing away most of the gradient signal that ties the layers together, is the real question, and the answer is more interesting than yes or no.
+Predicting straight off an early rack's layers is asking a lot of them, and on its own it hurts. The fix is to give each rack a few extra layers of its own before the output head, a small private decoder I'll call a coda. The coda does the work of turning a mid-stack representation into a prediction, which the rack's main layers shouldn't have to. This is the same trick as a looped language model, which reuses a block of layers to refine a representation before reading it out, except here every rack carries its own copy.
+
+I'll call the whole thing block-wise local training. That it costs less to run is easy to show. Whether the model is any good, after throwing away the gradient signal that ties the layers together, is the real question, and the answer is more interesting than yes or no.
 
 <iframe src="/figures/blt-bubble.html" width="100%" height="320" style="border: none; overflow: hidden;" />
 
@@ -34,7 +36,7 @@ I'll call it block-wise local training. That it costs less to run is easy to sho
 
 The idle time vanishes. After a one-step warmup every rack is busy every step, because no rack waits on a global backward pass that doesn't exist. On four racks I measured a 38% throughput gain at the same batch size, and the gain grows with rack count. The bubble in standard pipelining goes from a quarter of your GPUs idle at four racks to most of them idle at thirty-two.
 
-The traffic nearly vanishes too. Each rack still sends its activations forward, but it receives no gradients back. Over a fixed window the standard approach moved about 540 GB in each direction across the slow link. Block-wise local training received 38 GB, about fourteen times less. The one thing it must still share is the output head, which the racks average occasionally; in practice you can skip even that and just keep the last rack's copy.
+The traffic nearly vanishes too. Each rack still sends its activations forward, but it receives no gradients back. Over a fixed window the standard approach moved about 540 GB in each direction across the slow link. Block-wise local training received 38 GB, about fourteen times less. The one thing it could still share is the coda, which the racks could average occasionally; in practice it turns out you can skip even that and just keep each rack's own.
 
 It also uses less memory, because a rack only holds one batch of activations in flight instead of one per pipeline stage.
 
@@ -70,11 +72,15 @@ I won't oversell it. The same plot cuts both ways. The 3B line drifts toward zer
 
 If it is scale, here's the mechanism I'd bet on. A small model has too few layers to specialize, so every layer does a bit of everything and adjacent layers are tightly coupled. Cut between two tightly-coupled layers and the gradient you discarded was doing real work; the model suffers. A large model has room to specialize. Early layers encode, middle layers compute, late layers decode, and the boundaries between those roles are natural seams. Cut along a seam and the discarded gradient was barely holding anything together; the cut is nearly free.
 
-There's a second signal for this. The local method gives each rack its own output head, so you can ask how much worse the shallowest rack's head is than the deepest. If early layers produced useless features, that gap would be large. At 1B it's 0.29 nats; from 3B up it collapses to around 0.1. Bigger models make each rack's output independently decodable, which is what the specialization story predicts, and it's measured at matched progress so it doesn't suffer the under-training confound.
+There's a second signal for this. Each rack has its own coda, so you can ask how much worse the shallowest rack's prediction is than the deepest. If early layers produced useless features, that gap would be large. At 1B it's 0.29 nats; from 3B up it collapses to around 0.1. Bigger models make each rack's output independently decodable, which is what the specialization story predicts, and it's measured at matched progress so it doesn't suffer the under-training confound.
 
 ## A bonus, for inference
 
-The same structure helps generation. Because every rack can decode its own slice's output, you can sample as a wavefront: rack 0 starts the next token the moment it's handed off the current one, without waiting for the deeper racks. The pipeline stays full instead of draining between tokens, so decode throughput scales with rack count rather than being bubble-limited. And every intermediate rack already has an output head, which is a ready-made draft model for speculative decoding, free. I haven't benchmarked this end to end; it's a projection from the training-side numbers.
+The same structure helps generation. Because every rack can decode its own slice, you can sample as a wavefront: rack 0 predicts a token, hands it down the racks to be refined, and starts on the next token without waiting for the round trip. Tokens are in flight on every rack at once.
+
+That matters because of how decode is priced. Generating one token at a time is [memory-bound](https://youtu.be/xmkSf5IS-zw?t=0): you pay to fetch the whole model from memory to produce a single token, and that fetch isn't amortized over anything. Prefill, which processes many tokens together, is compute-bound and far cheaper per token. The game in serving is to raise decode's arithmetic intensity until it looks more like prefill, and the lever for that is batching: more tokens sharing each weight fetch. A wavefront stacks neatly with that, since every rack stays busy on a different point in the batch instead of draining between tokens, and the draft tokens fall out for free, because every rack already holds a coda you can speculate with.
+
+I haven't benchmarked any of this; it's a projection from the training-side numbers. But the shape is suggestive: the thing that removes the bubble in training also fills the pipeline in inference.
 
 ## What I'm claiming, and what I'm not
 
